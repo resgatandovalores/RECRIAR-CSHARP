@@ -7,7 +7,11 @@ namespace Recriar.Application.Validators;
 public static class AgeValidator
 {
     // "const": valor fixo que nunca muda. No C eram os números 0 e 120 escritos direto no if.
+
+    /// <summary>Lowest age accepted.</summary>
     public const int MinAge = 0;
+
+    /// <summary>Highest age accepted.</summary>
     public const int MaxAge = 120;
 
     /// <summary>
