@@ -19,4 +19,7 @@ public class Guardian
 
     /// <summary>Id of the child this guardian is responsible for.</summary>
     public int ChildId { get; set; }
+
+    /// <summary>The child this guardian is responsible for.</summary>
+    public Child? Child { get; set; }
 }

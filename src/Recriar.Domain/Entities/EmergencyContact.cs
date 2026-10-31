@@ -16,4 +16,7 @@ public class EmergencyContact
 
     /// <summary>Id of the child this contact belongs to.</summary>
     public int ChildId { get; set; }
+
+    /// <summary>The child this contact belongs to.</summary>
+    public Child? Child { get; set; }
 }
