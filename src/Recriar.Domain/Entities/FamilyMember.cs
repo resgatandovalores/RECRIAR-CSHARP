@@ -4,18 +4,25 @@ namespace Recriar.Domain.Entities;
 /// A person who belongs to the family of a child (mother, grandmother, sibling...).
 /// Translated from the C struct "Familiar".
 /// </summary>
-/// 
-/// outro projto pd pegar essa class
+// "public": outros projetos podem usar esta classe.
 public class FamilyMember
 {
+    // Número único do familiar. O banco gera sozinho (no C, a posição no array fazia isso).
     public int Id { get; set; }
 
-    /// <summary>Kinship with the child. Example: "Avó", "Irmão". (C: parentesco)</summary>
-    //campo de leitura get e escrita set
-    public string Relationship { get; set; } = string.Empty; //valor inicial com u mtexto vazio, o nullable enabled exige
-    //uma string nunca fique null
+    /// <summary>Id of the kinship chosen from the list (RelationshipType). (C: parentesco)</summary>
+    public int RelationshipTypeId { get; set; }
+
+    /// <summary>The kinship itself, for example "Avó".</summary>
+    public RelationshipType? RelationshipType { get; set; }
+
+    /// <summary>Free text used only when the kinship is "Outro". Null in the other cases.</summary>
+    // "string?": o ? permite null, ou seja, o campo pode ficar sem valor.
+    public string? OtherRelationship { get; set; }
 
     /// <summary>Full name of the family member. (C: nome)</summary>
+    // "{ get; set; }": propriedade com leitura (get) e escrita (set).
+    // "= string.Empty": valor inicial vazio, pois com Nullable ativado a string não pode ser null.
     public string Name { get; set; } = string.Empty;
 
     /// <summary>Age in years. (C: idade)</summary>
@@ -26,7 +33,4 @@ public class FamilyMember
 
     /// <summary>The child this family member belongs to.</summary>
     public Child? Child { get; set; }
-
-    //numero unico d cada familia no banco, eo banco gera sozinho
-    //no c o array fazia sozinho
 }
