@@ -24,6 +24,9 @@ public class FamilyMember
     /// <summary>Id of the child this family member belongs to.</summary>
     public int ChildId { get; set; }
 
+    /// <summary>The child this family member belongs to.</summary>
+    public Child? Child { get; set; }
+
     //numero unico d cada familia no banco, eo banco gera sozinho
     //no c o array fazia sozinho
 }
