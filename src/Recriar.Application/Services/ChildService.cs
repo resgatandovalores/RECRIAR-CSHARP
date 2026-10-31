@@ -24,6 +24,7 @@ public class ChildService : IChildService
     private readonly IRelationshipTypeRepository _relationshipTypes;
     private readonly IActivityLogger _activityLogger;
     private readonly IErrorLogger _errorLogger;
+    private readonly IChildFileExporter _fileExporter;
 
     /// <summary>
     /// Creates the service. It receives the contracts, not the real classes, so it does not know
@@ -34,12 +35,14 @@ public class ChildService : IChildService
         IChildRepository children,
         IRelationshipTypeRepository relationshipTypes,
         IActivityLogger activityLogger,
-        IErrorLogger errorLogger)
+        IErrorLogger errorLogger,
+        IChildFileExporter fileExporter)
     {
         _children = children;
         _relationshipTypes = relationshipTypes;
         _activityLogger = activityLogger;
         _errorLogger = errorLogger;
+        _fileExporter = fileExporter;
     }
 
     /// <inheritdoc />
@@ -119,6 +122,37 @@ public class ChildService : IChildService
         {
             Child entity = _children.GetById(id) ?? throw new BusinessException(ErrorMessages.ChildNotFound);
             return ChildMapper.ToDto(entity);
+        });
+    }
+
+    /// <inheritdoc />
+    public string ExportFile(int id)
+    {
+        return Run("Exportação de ficha", () =>
+        {
+            Child entity = _children.GetById(id) ?? throw new BusinessException(ErrorMessages.ChildNotFound);
+
+            // Nomes dos parentescos por Id. Só consulta o banco se a criança tiver familiares.
+            // ToDictionary(chave, valor): monta um "dicionário" para achar o nome pelo Id rapidamente.
+            IReadOnlyDictionary<int, string> relationshipNames = entity.FamilyMembers.Count > 0
+                ? _relationshipTypes.GetAll().ToDictionary(r => r.Id, r => r.Name)
+                : new Dictionary<int, string>();
+
+            string path;
+            try
+            {
+                path = _fileExporter.Export(entity, relationshipNames);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                // "when": este catch só pega erros de arquivo (pasta sem permissão, arquivo aberto em outro programa).
+                // Para esses, há uma mensagem própria no catálogo; o detalhe técnico vai para o log.
+                _errorLogger.LogError(ex, "Exportação de ficha");
+                throw new BusinessException(ErrorMessages.ExportFailed);
+            }
+
+            LogActivity("Ficha exportada", entity);
+            return path;
         });
     }
 

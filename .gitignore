@@ -487,3 +487,6 @@ appsettings.*.Local.json
 appsettings.Development.json
 *.local.json
 secrets.json
+
+# ==== RECRIAR: fichas exportadas têm dados pessoais das crianças (nunca enviar ao Git) ====
+[Ff]ichas/
