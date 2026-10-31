@@ -1,27 +1,46 @@
+using Microsoft.EntityFrameworkCore;
 using Recriar.Application.Interfaces;
 using Recriar.Infrastructure.Persistence.Context;
 using Recriar.Infrastructure.Persistence.Entities;
 
 namespace Recriar.Infrastructure.Persistence.Repositories;
 
-public sealed class DbActivityLogger : IActivityLogger
+public class DbActivityLogger : IActivityLogger
 {
-    private readonly Func<AppDbContext> _createContext;
+    private readonly DbContextOptions<AppDbContext>? _options;
 
-    public DbActivityLogger() : this(AppDbContextFactory.Create) { }
+    public DbActivityLogger()
+    {
+    }
 
-    public DbActivityLogger(Func<AppDbContext> createContext) => _createContext = createContext;
+    // Tests can supply the settings for their temporary database.
+    public DbActivityLogger(DbContextOptions<AppDbContext> options)
+    {
+        _options = options;
+    }
 
     public void Log(string action, string description)
     {
         // Use a separate context so a log error does not affect the next registration.
-        using var context = _createContext();
-        context.ActivityLogs.Add(new ActivityLog
+        AppDbContext context;
+        if (_options == null)
         {
-            Action = action,
-            Description = description,
-            CreatedAt = DateTime.UtcNow
-        });
-        context.SaveChanges();
+            context = AppDbContextFactory.Create();
+        }
+        else
+        {
+            context = new AppDbContext(_options);
+        }
+
+        using (context)
+        {
+            ActivityLog log = new ActivityLog();
+            log.Action = action;
+            log.Description = description;
+            log.CreatedAt = DateTime.UtcNow;
+
+            context.ActivityLogs.Add(log);
+            context.SaveChanges();
+        }
     }
 }

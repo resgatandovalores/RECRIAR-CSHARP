@@ -1,5 +1,7 @@
 # Banco de dados do RECRIAR
 
+Para começar pela parte mais simples, leia `COMO_ENTENDER_O_CODIGO.md`. Ele explica os métodos do cadastro e os comandos de consulta. O código usa construtores comuns e métodos escritos por inteiro. O Entity Framework e as migrations continuam presentes porque fazem parte da estrutura combinada pelo grupo.
+
 Este material contém a parte do banco de dados, feita a partir do código da branch `sandbox`. O serviço e as classes existentes foram mantidos. Este modelo substitui o rascunho antigo de três tabelas.
 
 ## Estrutura

@@ -5,7 +5,22 @@ using Recriar.Infrastructure.Persistence.Context;
 
 namespace Recriar.Infrastructure.Persistence.Repositories;
 
-public sealed class RelationshipTypeRepository(AppDbContext context) : IRelationshipTypeRepository
+public class RelationshipTypeRepository : IRelationshipTypeRepository
 {
-    public List<RelationshipType> GetAll() => context.RelationshipTypes.AsNoTracking().OrderBy(x => x.Id).ToList();
+    private readonly AppDbContext _context;
+
+    public RelationshipTypeRepository(AppDbContext context)
+    {
+        _context = context;
+    }
+
+    public List<RelationshipType> GetAll()
+    {
+        List<RelationshipType> types = _context.RelationshipTypes
+            .AsNoTracking()
+            .OrderBy(type => type.Id)
+            .ToList();
+
+        return types;
+    }
 }

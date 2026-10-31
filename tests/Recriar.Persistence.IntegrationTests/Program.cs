@@ -45,7 +45,7 @@ try
 
     var repo = new ChildRepository(context);
     var errors = new CapturingErrorLogger();
-    var service = new ChildService(repo, new RelationshipTypeRepository(context), new DbActivityLogger(Create), errors, new StubExporter());
+    var service = new ChildService(repo, new RelationshipTypeRepository(context), new DbActivityLogger(options), errors, new StubExporter());
     var dto = Sample();
     int id = service.Register(dto);
     Check(id > 0, "cadastro pelo servico retorna Id gerado pelo MySQL");
@@ -129,7 +129,7 @@ try
         fresh.ActivitySessions.Add(new ActivitySession { ActivityId = activity.Id, StartsAt = DateTime.UtcNow, EndsAt = DateTime.UtcNow.AddHours(-1), Location = "Sala" });
         Reject(() => fresh.SaveChanges(), "encontro deve terminar depois do inicio");
     }
-    var logger = new DbActivityLogger(Create);
+    var logger = new DbActivityLogger(options);
     Reject(() => logger.Log(new string('x', 101), "Teste de falha"), "falha de log em contexto independente");
     logger.Log("Teste", "Log seguinte funciona");
     Check(service.Register(Sample()) > 0, "falha de log nao contamina o proximo cadastro");
