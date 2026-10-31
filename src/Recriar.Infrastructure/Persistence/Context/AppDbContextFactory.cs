@@ -21,7 +21,7 @@ public static class AppDbContextFactory
             throw new InvalidOperationException("A configuração local de conexão é inválida.");
         }
 
-        // This development factory must never target a shared or production server.
+        // Use only the local development database.
         if (connection.Database != "recriar_dev" ||
             !(connection.Server.Equals("localhost", StringComparison.OrdinalIgnoreCase) ||
               connection.Server == "127.0.0.1" || connection.Server == "::1"))

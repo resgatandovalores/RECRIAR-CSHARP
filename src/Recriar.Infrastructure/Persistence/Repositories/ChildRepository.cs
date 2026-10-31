@@ -32,7 +32,7 @@ public sealed class ChildRepository(AppDbContext context) : IChildRepository
     {
         if (context.Entry(child).State == EntityState.Detached)
             throw new InvalidOperationException("Carregue o cadastro no mesmo contexto antes de editar.");
-        // The service edits the tracked aggregate, including removed and new family members.
+        // Save the child loaded by GetById, including family members added or removed.
         try { context.SaveChanges(); }
         catch { context.ChangeTracker.Clear(); throw; }
     }

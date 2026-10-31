@@ -14,7 +14,7 @@ public sealed class DbActivityLogger : IActivityLogger
 
     public void Log(string action, string description)
     {
-        // A failed log must not leave pending changes in the repositories' context.
+        // Use a separate context so a log error does not affect the next registration.
         using var context = _createContext();
         context.ActivityLogs.Add(new ActivityLog
         {

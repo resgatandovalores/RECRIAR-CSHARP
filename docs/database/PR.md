@@ -1,11 +1,13 @@
-# feat: implementa persistência MySQL do RECRIAR
+# Banco de dados do RECRIAR
 
-Destino: sandbox
+Preparei o banco com 11 tabelas, os relacionamentos e os nove tipos de parentesco. Também fiz as classes que salvam, consultam, editam e excluem os cadastros, seguindo as interfaces que já estavam no projeto.
 
-Implementa AppDbContext, configurações, migration inicial, seed dos nove parentescos e repositórios síncronos dos contratos existentes. O logger de atividades usa um contexto independente por chamada. As classes de Domain, Application e as telas foram preservadas.
+Incluí o registro de atividades do sistema e as tabelas de programas, oficinas, encontros, inscrições e presenças. Essa parte está preparada no banco, mas ainda não tem telas.
 
-O banco possui 11 tabelas de negócio. As cinco adicionais representam programas, atividades, encontros, inscrições por encontro e presenças. A extensão foi modelada e testada; não adiciona telas ou serviços de oficinas.
+Os arquivos incluem o SQL com dados fictícios, os diagramas e as instruções para conectar às telas. As classes de Domain, Application e os formulários existentes foram mantidos.
 
-Inclui SQL completo com dados fictícios e consultas, modelo editável do Workbench, MER e guia de integração. A configuração usa variável de ambiente e a fábrica de desenvolvimento restringe a conexão ao banco recriar_dev em loopback.
+O projeto compilou sem erros nem avisos. Passaram 26 verificações no MySQL, incluindo edição de familiares, exclusão dos dados vinculados e falhas no registro de atividades. As telas e a geração do HTML real não foram testadas nessas verificações.
 
-Validação: build da solution sem avisos nem erros; 26 verificações aprovadas em MySQL 8.0.46; execução do SQL completo em schema isolado. O formulário do Pedro ainda precisa receber o ChildService no Program.cs. Os testes usam um exportador substituto e não validam a geração HTML real.
+Falta conectar o serviço às telas no Program.cs, na parte do Pedro.
+
+Destino do PR: **sandbox**.
