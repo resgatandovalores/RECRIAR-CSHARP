@@ -52,6 +52,11 @@ public static class ErrorMessages
     public static string FieldTooLong(string field, int maxLength) =>
         $"O campo {field} aceita no máximo {maxLength} caracteres.";
 
+    /// <summary>The file could not be written (folder without permission, file open in another program...).</summary>
+    // Fica em "const" igual aos outros textos fixos; está aqui embaixo só para ficar perto das regras de exportação.
+    public const string ExportFailed =
+        "Não foi possível salvar a ficha. Feche a ficha se ela estiver aberta e tente de novo. Se continuar, entre em contato com o suporte.";
+
     /// <summary>The chosen kinship does not exist in the list.</summary>
     public static string InvalidRelationshipType(string field) =>
         $"O campo {field} é inválido. Escolha uma das opções da lista.";

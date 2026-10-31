@@ -57,6 +57,17 @@ public interface IChildService
     ChildDto GetById(int id);
 
     /// <summary>
+    /// Saves the file (ficha) of the child as an HTML page in the "fichas" folder and returns its full path.
+    /// Called only when the user asks for it (button), never automatically. (C: salvarTXTIndividual)
+    /// The activity "Ficha exportada" is recorded in the activity log.
+    /// To open the file in the browser, the screen can use:
+    /// Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
+    /// </summary>
+    /// <returns>Full path of the saved file.</returns>
+    /// <exception cref="Exceptions.BusinessException">The child does not exist, or the file could not be saved.</exception>
+    string ExportFile(int id);
+
+    /// <summary>
     /// Returns the kinship options (Mãe, Pai, Avó...) to fill a ComboBox.
     /// Use Id as the value and Name as the text. The chosen Id goes to FamilyMemberDto.RelationshipTypeId.
     /// </summary>
