@@ -6,6 +6,12 @@ namespace Recriar.Application.Dtos;
 /// </summary>
 public class FamilyMemberDto
 {
+    /// <summary>
+    /// Id of the family member. Zero for a new family member.
+    /// When editing, keep the Id that came from the service, so the system knows which member was changed.
+    /// </summary>
+    public int Id { get; set; }
+
     /// <summary>Id of the chosen kinship (RelationshipType). It comes from the list shown to the user.</summary>
     public int RelationshipTypeId { get; set; }
 

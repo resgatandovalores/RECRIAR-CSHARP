@@ -12,6 +12,12 @@ namespace Recriar.Domain.Entities;
 /// </remarks>
 public class RelationshipType
 {
+    /// <summary>
+    /// Fixed Id of the option "Outro" in the seed. When it is chosen, FamilyMember.OtherRelationship is required.
+    /// </summary>
+    // O seed do banco precisa usar este mesmo número para o "Outro".
+    public const int OtherId = 9;
+
     public int Id { get; set; }
 
     /// <summary>Name shown to the user. Example: "Avó". (C: parentesco)</summary>

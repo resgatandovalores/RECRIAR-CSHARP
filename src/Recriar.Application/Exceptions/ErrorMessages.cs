@@ -25,16 +25,9 @@ public static class ErrorMessages
         "Data de cadastro inválida. Use o formato dd/mm/aaaa ou dd.mm.aaaa e uma data que exista.";
 
     /// <summary>More family members than allowed. (C: MAX_FAMILIA)</summary>
-    public const string TooManyFamilyMembers =
-        "A ficha pode ter no máximo 10 familiares.";
-
-    /// <summary>The chosen kinship does not exist in the list.</summary>
-    public const string InvalidRelationshipType =
-        "Parentesco inválido. Escolha uma das opções da lista.";
-
-    /// <summary>The kinship "Outro" was chosen but not described.</summary>
-    public const string OtherRelationshipRequired =
-        "Informe qual é o parentesco quando escolher \"Outro\".";
+    // "=>" sem parâmetros: propriedade calculada. Não pode ser "const" porque usa o número de outra classe.
+    public static string TooManyFamilyMembers =>
+        $"A ficha pode ter no máximo {ChildValidator.MaxFamilyMembers} familiares.";
 
     // ---- Erros com variação: método que recebe o nome do campo ----
     // O nome do campo (ex.: "Nome", "CPF") é passado por quem chama, para a mensagem dizer qual campo está errado.
@@ -58,4 +51,12 @@ public static class ErrorMessages
     /// <summary>The text is longer than the database accepts. (In C the text was silently cut.)</summary>
     public static string FieldTooLong(string field, int maxLength) =>
         $"O campo {field} aceita no máximo {maxLength} caracteres.";
+
+    /// <summary>The chosen kinship does not exist in the list.</summary>
+    public static string InvalidRelationshipType(string field) =>
+        $"O campo {field} é inválido. Escolha uma das opções da lista.";
+
+    /// <summary>The kinship "Outro" was chosen but the real kinship was not written.</summary>
+    public static string OtherRelationshipRequired(string field) =>
+        $"O campo {field} é obrigatório quando o parentesco escolhido é \"Outro\".";
 }
