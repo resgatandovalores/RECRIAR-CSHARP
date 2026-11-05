@@ -1,13 +1,13 @@
-# Banco de dados do RECRIAR
+# Banco de dados com ADO.NET e acesso de leitura
 
-Preparei o banco com 11 tabelas, os relacionamentos e os nove tipos de parentesco. Também fiz as classes que salvam, consultam, editam e excluem os cadastros, seguindo as interfaces que já estavam no projeto.
+O acesso ao MySQL passa a usar SQL direto com MySqlCommand, parâmetros, ExecuteReader, ExecuteNonQuery e ExecuteScalar, conforme o exemplo da aula. As interfaces de cadastro e os nomes usados para montar o serviço foram mantidos.
 
-Incluí o registro de atividades do sistema e as tabelas de programas, oficinas, encontros, inscrições e presenças. Essa parte está preparada no banco, mas ainda não tem telas.
+O instalador cria recriar_prod com 11 tabelas e recriar_leitura com 11 views de consulta. As views mostram os dados atuais do principal e bloqueiam alterações. Foram incluídos papéis separados para gravação e consulta. Essa solução usa dois schemas no mesmo servidor; não é uma réplica física.
 
-Os arquivos incluem o SQL com dados fictícios, os diagramas e as instruções para conectar às telas. As classes de Domain, Application e os formulários existentes foram mantidos.
+Cadastro e edição usam transações. A edição preserva os IDs dos familiares mantidos, inclui os novos e remove os que saíram. O registro de atividades usa outra conexão.
 
-O projeto compilou sem erros nem avisos. Passaram 26 verificações no MySQL, incluindo edição de familiares, exclusão dos dados vinculados e falhas no registro de atividades. As telas e a geração do HTML real não foram testadas nessas verificações.
+Inclui SQL de instalação, dados fictícios separados, diagramas e guia de conexão com duas contas. Domain, Application e os formulários existentes foram preservados. As configurações e migrations do EF foram substituídas pelos scripts SQL.
 
-Falta conectar o serviço às telas no Program.cs, na parte do Pedro.
+Validação: compilação sem erros nem avisos e 39 verificações aprovadas no MySQL, incluindo permissões de leitura e rollback do cadastro e da edição. As telas e a geração do HTML real não foram validadas nesses testes. As oficinas estão modeladas no banco, ainda sem telas e serviços próprios.
 
-Destino do PR: **sandbox**.
+Falta conectar o ChildService às telas no Program.cs. O destino do PR é sandbox.

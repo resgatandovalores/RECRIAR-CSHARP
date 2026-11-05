@@ -1,46 +1,48 @@
-using Microsoft.EntityFrameworkCore;
+using MySqlConnector;
 using Recriar.Application.Interfaces;
+using Recriar.Domain.Entities;
 using Recriar.Infrastructure.Persistence.Context;
-using Recriar.Infrastructure.Persistence.Entities;
 
 namespace Recriar.Infrastructure.Persistence.Repositories;
 
 public class DbActivityLogger : IActivityLogger
 {
-    private readonly DbContextOptions<AppDbContext>? _options;
+    private readonly AppDbContext? _context;
 
     public DbActivityLogger()
     {
     }
 
-    // Tests can supply the settings for their temporary database.
-    public DbActivityLogger(DbContextOptions<AppDbContext> options)
+    public DbActivityLogger(AppDbContext context)
     {
-        _options = options;
+        _context = context;
     }
 
     public void Log(string action, string description)
     {
-        // Use a separate context so a log error does not affect the next registration.
         AppDbContext context;
-        if (_options == null)
+        if (_context == null)
         {
             context = AppDbContextFactory.Create();
         }
         else
         {
-            context = new AppDbContext(_options);
+            context = _context;
         }
 
-        using (context)
+        // This connection is separate from the one that saved the child.
+        using (MySqlConnection connection = context.CreateWriteConnection())
         {
-            ActivityLog log = new ActivityLog();
-            log.Action = action;
-            log.Description = description;
-            log.CreatedAt = DateTime.UtcNow;
-
-            context.ActivityLogs.Add(log);
-            context.SaveChanges();
+            connection.Open();
+            string sql = "INSERT INTO ActivityLogs (Action, Description, CreatedAt) " +
+                "VALUES (@action, @description, @createdAt)";
+            using (MySqlCommand command = new MySqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@action", action);
+                command.Parameters.AddWithValue("@description", description);
+                command.Parameters.AddWithValue("@createdAt", DateTime.UtcNow);
+                command.ExecuteNonQuery();
+            }
         }
     }
 }

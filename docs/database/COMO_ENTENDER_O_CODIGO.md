@@ -1,60 +1,52 @@
-# Por onde começar a entender o código
+# Como entender a parte do banco
 
-O cadastro usa classes, propriedades, métodos, listas, condições e tratamento de erros. Esses são os assuntos básicos que você deve estudar primeiro.
+O código usa SQL direto, no estilo mostrado na foto da aula. Comece por ChildRepository.cs, nos métodos GetAll, Add e Delete.
 
-A comunicação com o banco usa Entity Framework Core, que já é um assunto intermediário. Ele foi mantido porque o guia do grupo pede AppDbContext, configurações e migrations. A versão atual usa construtores comuns, métodos escritos por inteiro e condições separadas para facilitar a leitura. A estrutura em camadas vem do projeto do grupo.
+## A conexão
 
-## Ordem de leitura
+MySqlConnection representa uma conexão ao MySQL. Open abre a conexão. O bloco using fecha e libera a conexão quando a operação termina, mesmo se ocorrer um erro.
 
-1. Abra `Persistence/Entities/ActivityLog.cs`. É uma classe pequena que representa uma linha do histórico.
-2. Abra `Persistence/Repositories/ChildRepository.cs`. Comece pelos métodos Add e Delete.
-3. Leia GetAll e SearchByName, no mesmo arquivo. Eles fazem as consultas.
-4. Leia `RelationshipTypeRepository.cs`, que consulta a lista de parentescos.
-5. Leia `AppDbContext.cs`. Ele reúne as tabelas e suas configurações.
-6. Por último, leia as configurações e a criação da conexão.
+AppDbContext guarda as configurações de gravação e leitura. CreateWriteConnection cria a conexão para recriar_prod; CreateReadConnection cria a conexão para recriar_leitura. Os dados de acesso vêm das variáveis de ambiente, sem senhas no código.
 
-## Como um cadastro é salvo
+## Os três métodos da aula
 
-A tela chama o serviço. O serviço confere os dados e chama Add. Nesse método:
+| Método | O que faz | Onde aparece |
+|---|---|---|
+| ExecuteReader | Executa uma consulta e permite ler suas linhas. | GetById, GetAll e consulta de parentescos. |
+| ExecuteNonQuery | Executa INSERT, UPDATE ou DELETE e devolve a quantidade de linhas afetadas. | Add, Update, Delete e registro de atividades. |
+| ExecuteScalar | Devolve o primeiro valor da primeira linha de uma consulta, ou null se não houver linhas. | Consulta do ID recém-criado e verificação do cadastro. |
+
+ExecuteScalar não serve somente para COUNT: SELECT LAST_INSERT_ID() também devolve um único valor, que é o código gerado na mesma conexão.
+
+## Como os dados entram no comando
 
 ```csharp
-_context.Children.Add(child);
-_context.SaveChanges();
+string sql = "DELETE FROM Children WHERE Id = @id";
+using (MySqlCommand command = new MySqlCommand(sql, connection))
+{
+    command.Parameters.AddWithValue("@id", id);
+    int rows = command.ExecuteNonQuery();
+}
 ```
 
-A primeira linha prepara a inclusão da criança. A segunda grava as alterações no MySQL. O responsável, o contato e os familiares que fazem parte do cadastro também são gravados, conforme os relacionamentos configurados.
+@id é um parâmetro. AddWithValue fornece o valor separado do texto SQL. Isso evita montar SQL juntando o que a pessoa digitou. Os nomes de tabela e coluna do programa são fixos; os valores são passados por parâmetros.
 
-Para excluir, o código busca a criança com Find. Se não encontrar, devolve false. Se encontrar, usa Remove e SaveChanges. O banco exclui os registros vinculados de acordo com as regras de cascata.
+## Como uma consulta vira uma lista
 
-## Os comandos de consulta
+ExecuteReader devolve um leitor. O while (reader.Read()) passa por cada linha encontrada. GetInt32 lê um número inteiro e GetString lê um texto. O código cria um objeto Child, preenche seus campos e o adiciona à lista. ORDER BY Id define a ordem da consulta.
 
-| Comando | Para que serve |
-|---|---|
-| Include | Traz os dados relacionados, como o responsável. |
-| ThenInclude | Traz o parentesco de cada familiar. |
-| Where | Filtra os resultados. |
-| Contains | Procura um trecho do nome. |
-| OrderBy | Ordena os registros. |
-| ToList | Executa a consulta e devolve uma lista. |
-| SingleOrDefault | Busca um registro ou devolve null se ele não existir. |
-| AsNoTracking | Indica que a consulta é apenas para leitura. |
+## Como o cadastro é gravado
 
-Em `child => child.Id`, o nome à esquerda da seta representa o registro que está sendo analisado. À direita fica a informação usada na consulta. Essa forma de escrever é comum no Entity Framework e ainda aparece nos filtros e nas configurações.
+Add inclui a criança, o responsável, o contato e os familiares. Tudo ocorre na mesma transação. Commit confirma o conjunto de alterações. Se uma parte falhar antes do Commit, o fechamento da transação desfaz o que estava pendente. Assim, não fica uma criança gravada com metade da ficha faltando.
 
-## Como funciona a edição
+Update altera os campos da criança e dos registros vinculados. Para os familiares, ele consulta os IDs existentes, atualiza os mantidos, inclui os novos e exclui os removidos. Um familiar de outra criança não pode ser atualizado por essa ficha.
 
-GetById busca a criança e seus dados relacionados. O serviço altera esse mesmo objeto e chama Update. O contexto acompanha o que foi alterado, incluído e removido. Por isso, Update usa SaveChanges: ele não precisa repetir uma instrução de alteração para cada campo.
+Delete usa a quantidade de linhas afetadas para devolver true ou false. O MySQL exclui os dados dependentes pelas chaves estrangeiras com ON DELETE CASCADE.
 
-Essa parte é intermediária. O ponto principal para usar corretamente é manter o mesmo contexto entre a busca e a gravação.
+## O banco de leitura
 
-## O tratamento de erros
+recriar_leitura contém views, que são consultas salvas. Elas mostram os dados atuais de recriar_prod. As views não permitem gravação e a conta de consulta recebe apenas SELECT. Não existe uma cópia independente para sincronizar nessa solução.
 
-O bloco try tenta gravar os dados. Se a gravação falhar, o catch limpa as alterações pendentes e repassa o erro com throw. Isso evita que o próximo comando tente salvar dados que ficaram pendentes por causa da falha anterior.
+## O que ainda exige um pouco mais de estudo
 
-O registro de atividades usa seu próprio contexto. Assim, uma falha ao registrar o histórico não deixa alterações pendentes no contexto do cadastro.
-
-## O que você precisa explicar na apresentação
-
-Explique para que serve cada tabela, o que são chave primária e chave estrangeira, como o cadastro é salvo e o que acontece quando uma criança é excluída. Mostre também por que Outro tem Id 9 e por que CPF e telefone são textos.
-
-Os arquivos da pasta Migrations são gerados pelo Entity Framework. Eles contêm os comandos de criação do banco e naturalmente são mais longos. Para entender o sistema, comece pelas classes e pelos métodos do cadastro.
+Transações, chaves estrangeiras e permissões são assuntos que você deve entender para explicar a integridade dos dados. A organização em interfaces vem do projeto do grupo. A parte principal usa métodos, classes, condições, listas, laços e SQL direto. Não há Configurations, migrations ou rastreamento de objetos do Entity Framework nesta versão.

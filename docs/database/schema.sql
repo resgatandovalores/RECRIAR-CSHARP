@@ -1,12 +1,4 @@
--- Gerado pela migration InitialDatabase. Executar no schema selecionado.
-CREATE TABLE IF NOT EXISTS `__EFMigrationsHistory` (
-    `MigrationId` varchar(150) CHARACTER SET utf8mb4 NOT NULL,
-    `ProductVersion` varchar(32) CHARACTER SET utf8mb4 NOT NULL,
-    CONSTRAINT `PK___EFMigrationsHistory` PRIMARY KEY (`MigrationId`)
-) CHARACTER SET=utf8mb4;
-
-START TRANSACTION;
-ALTER DATABASE CHARACTER SET utf8mb4;
+-- RECRIAR: estrutura das 11 tabelas. Executar em um banco novo selecionado.
 
 CREATE TABLE `ActivityLogs` (
     `Id` int NOT NULL AUTO_INCREMENT,
@@ -154,8 +146,3 @@ CREATE UNIQUE INDEX `IX_Guardians_ChildId` ON `Guardians` (`ChildId`);
 CREATE INDEX `IX_SessionEnrollments_ChildId` ON `SessionEnrollments` (`ChildId`);
 
 CREATE UNIQUE INDEX `IX_SessionEnrollments_SessionId_ChildId` ON `SessionEnrollments` (`SessionId`, `ChildId`);
-
-INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
-VALUES ('20261031201442_InitialDatabase', '9.0.22');
-
-COMMIT;

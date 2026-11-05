@@ -1,5 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Design;
 using MySqlConnector;
 
 namespace Recriar.Infrastructure.Persistence.Context;
@@ -7,49 +5,43 @@ namespace Recriar.Infrastructure.Persistence.Context;
 public static class AppDbContextFactory
 {
     public const string ConnectionVariable = "RECRIAR_CONNECTION_STRING";
+    public const string ReadConnectionVariable = "RECRIAR_READ_CONNECTION_STRING";
 
     public static AppDbContext Create()
     {
-        string? value = Environment.GetEnvironmentVariable(ConnectionVariable);
-        if (string.IsNullOrWhiteSpace(value))
+        string? writeValue = Environment.GetEnvironmentVariable(ConnectionVariable);
+        string? readValue = Environment.GetEnvironmentVariable(ReadConnectionVariable);
+        if (string.IsNullOrWhiteSpace(writeValue) || string.IsNullOrWhiteSpace(readValue))
         {
-            throw new InvalidOperationException($"Configure a variável de ambiente {ConnectionVariable} na sua sessão.");
+            throw new InvalidOperationException("Configure as duas conexões: RECRIAR_CONNECTION_STRING e RECRIAR_READ_CONNECTION_STRING.");
         }
 
-        MySqlConnectionStringBuilder connection;
+        MySqlConnectionStringBuilder write;
+        MySqlConnectionStringBuilder read;
         try
         {
-            connection = new MySqlConnectionStringBuilder(value);
+            write = new MySqlConnectionStringBuilder(writeValue);
+            read = new MySqlConnectionStringBuilder(readValue);
         }
         catch (ArgumentException)
         {
-            throw new InvalidOperationException("A configuração local de conexão é inválida.");
+            throw new InvalidOperationException("Confira os dados das conexões locais.");
         }
 
-        // Use only the local development database.
-        bool isLocalServer = connection.Server.Equals("localhost", StringComparison.OrdinalIgnoreCase)
-            || connection.Server == "127.0.0.1"
-            || connection.Server == "::1";
-
-        bool isDevelopmentDatabase = connection.Database == "recriar_dev";
-
-        if (!isLocalServer || !isDevelopmentDatabase)
+        if (!IsLocal(write.Server) || !IsLocal(read.Server) || write.Port != read.Port)
         {
-            throw new InvalidOperationException("Use o banco recriar_dev em um servidor local para desenvolvimento.");
+            throw new InvalidOperationException("Use os dois bancos no mesmo servidor MySQL local.");
         }
-
-        var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseMySql(value, new MySqlServerVersion(new Version(8, 0, 16)))
-            .Options;
-        return new AppDbContext(options);
+        if (write.Database != "recriar_prod" || read.Database != "recriar_leitura")
+        {
+            throw new InvalidOperationException("Use recriar_prod para gravação e recriar_leitura para consultas.");
+        }
+        return new AppDbContext(writeValue, readValue);
     }
-}
 
-public class DesignTimeAppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
-{
-    public AppDbContext CreateDbContext(string[] args)
+    private static bool IsLocal(string server)
     {
-        AppDbContext context = AppDbContextFactory.Create();
-        return context;
+        return server.Equals("localhost", StringComparison.OrdinalIgnoreCase)
+            || server == "127.0.0.1" || server == "::1";
     }
 }

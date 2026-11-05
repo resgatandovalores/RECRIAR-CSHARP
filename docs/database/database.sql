@@ -1,19 +1,11 @@
--- RECRIAR - MySQL 8.0.16 ou superior
--- Instalação em schema NOVO, com 11 tabelas de negócio e histórico técnico do EF.
--- Se recriar_dev já existir, pare e use migrations; não execute novamente neste banco.
--- No cliente mysql, não use --force: um erro deve interromper a execução.
-CREATE DATABASE recriar_dev CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
-USE recriar_dev;
+-- RECRIAR: instalar os dois bancos NOVOS. Executar como administrador.
+
+-- Primeira instalação do banco principal. Não apaga bancos existentes.
+CREATE DATABASE recriar_prod CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+USE recriar_prod;
 SET NAMES utf8mb4;
 
-CREATE TABLE IF NOT EXISTS `__EFMigrationsHistory` (
-    `MigrationId` varchar(150) CHARACTER SET utf8mb4 NOT NULL,
-    `ProductVersion` varchar(32) CHARACTER SET utf8mb4 NOT NULL,
-    CONSTRAINT `PK___EFMigrationsHistory` PRIMARY KEY (`MigrationId`)
-) CHARACTER SET=utf8mb4;
-
-START TRANSACTION;
-ALTER DATABASE CHARACTER SET utf8mb4;
+-- RECRIAR: estrutura das 11 tabelas. Executar em um banco novo selecionado.
 
 CREATE TABLE `ActivityLogs` (
     `Id` int NOT NULL AUTO_INCREMENT,
@@ -162,85 +154,58 @@ CREATE INDEX `IX_SessionEnrollments_ChildId` ON `SessionEnrollments` (`ChildId`)
 
 CREATE UNIQUE INDEX `IX_SessionEnrollments_SessionId_ChildId` ON `SessionEnrollments` (`SessionId`, `ChildId`);
 
-INSERT INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
-VALUES ('20261031201442_InitialDatabase', '9.0.22');
+-- Banco de consulta, no mesmo servidor do principal.
+-- As views mostram os dados atuais do banco principal, sem guardar uma cópia.
+-- TEMPTABLE impede INSERT, UPDATE e DELETE pelas views.
+-- Execute como administrador. A conta que cria as views precisa continuar existindo.
+CREATE DATABASE recriar_leitura CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+USE recriar_leitura;
 
-COMMIT;
+CREATE ALGORITHM=TEMPTABLE SQL SECURITY DEFINER VIEW `ActivityLogs` AS
+SELECT `Id`, `Action`, `Description`, `CreatedAt` FROM `recriar_prod`.`ActivityLogs`;
+
+CREATE ALGORITHM=TEMPTABLE SQL SECURITY DEFINER VIEW `Children` AS
+SELECT `Id`, `Name`, `Age`, `Cpf`, `Rg`, `Address`, `Neighborhood`, `City`, `School`, `MotherName`, `FatherName`, `Phone`, `RegistrationDate`, `HealthCenter`, `FileNumber`, `Allergy` FROM `recriar_prod`.`Children`;
+
+CREATE ALGORITHM=TEMPTABLE SQL SECURITY DEFINER VIEW `Programs` AS
+SELECT `Id`, `Name`, `Description` FROM `recriar_prod`.`Programs`;
+
+CREATE ALGORITHM=TEMPTABLE SQL SECURITY DEFINER VIEW `RelationshipTypes` AS
+SELECT `Id`, `Name` FROM `recriar_prod`.`RelationshipTypes`;
+
+CREATE ALGORITHM=TEMPTABLE SQL SECURITY DEFINER VIEW `EmergencyContacts` AS
+SELECT `Id`, `Name`, `Phone`, `ChildId` FROM `recriar_prod`.`EmergencyContacts`;
+
+CREATE ALGORITHM=TEMPTABLE SQL SECURITY DEFINER VIEW `Guardians` AS
+SELECT `Id`, `Name`, `Rg`, `Cpf`, `ChildId` FROM `recriar_prod`.`Guardians`;
+
+CREATE ALGORITHM=TEMPTABLE SQL SECURITY DEFINER VIEW `Activities` AS
+SELECT `Id`, `ProgramId`, `Name` FROM `recriar_prod`.`Activities`;
+
+CREATE ALGORITHM=TEMPTABLE SQL SECURITY DEFINER VIEW `FamilyMembers` AS
+SELECT `Id`, `RelationshipTypeId`, `OtherRelationship`, `Name`, `Age`, `ChildId` FROM `recriar_prod`.`FamilyMembers`;
+
+CREATE ALGORITHM=TEMPTABLE SQL SECURITY DEFINER VIEW `ActivitySessions` AS
+SELECT `Id`, `ActivityId`, `StartsAt`, `EndsAt`, `Location` FROM `recriar_prod`.`ActivitySessions`;
+
+CREATE ALGORITHM=TEMPTABLE SQL SECURITY DEFINER VIEW `SessionEnrollments` AS
+SELECT `Id`, `ChildId`, `SessionId`, `RegisteredAt` FROM `recriar_prod`.`SessionEnrollments`;
+
+CREATE ALGORITHM=TEMPTABLE SQL SECURITY DEFINER VIEW `AttendanceRecords` AS
+SELECT `Id`, `SessionEnrollmentId`, `Attended`, `RecordedAt` FROM `recriar_prod`.`AttendanceRecords`;
 
 
--- Dados fictícios para demonstração. Executar somente em ambiente de desenvolvimento.
-START TRANSACTION;
-INSERT INTO Children (Name, Age, Cpf, Rg, Address, Neighborhood, City, School,
- MotherName, FatherName, Phone, RegistrationDate, HealthCenter, FileNumber, Allergy)
-VALUES ('Crianca Exemplo', 8, '00000000000', '00123', '', 'Centro', 'Campinas', '',
- 'Mae Exemplo', 'Pai Exemplo', '0012345678', '2026-10-31', '', '', '');
-SET @child_id = LAST_INSERT_ID();
-INSERT INTO Guardians (Name, Rg, Cpf, ChildId)
-VALUES ('Responsavel Exemplo', '00123', '00000000000', @child_id);
-INSERT INTO EmergencyContacts (Name, Phone, ChildId)
-VALUES ('Contato Exemplo', '0012345678', @child_id);
-INSERT INTO FamilyMembers (RelationshipTypeId, OtherRelationship, Name, Age, ChildId)
-VALUES (9, 'Primo', 'Familiar Exemplo', 20, @child_id);
-INSERT INTO ActivityLogs (Action, Description, CreatedAt)
-VALUES ('Cadastro criado', CONCAT('Criança ', @child_id, ' - Crianca Exemplo'), UTC_TIMESTAMP(6));
-INSERT INTO Programs (Name, Description) VALUES ('Programa Exemplo', 'Programa ficticio para demonstracao');
-SET @program_id = LAST_INSERT_ID();
-INSERT INTO Activities (ProgramId, Name) VALUES (@program_id, 'Oficina Exemplo');
-SET @activity_id = LAST_INSERT_ID();
-INSERT INTO ActivitySessions (ActivityId, StartsAt, EndsAt, Location)
-VALUES (@activity_id, '2026-11-01 09:00:00', '2026-11-01 10:00:00', 'Sala Exemplo');
-SET @session_id = LAST_INSERT_ID();
-INSERT INTO SessionEnrollments (ChildId, SessionId, RegisteredAt)
-VALUES (@child_id, @session_id, UTC_TIMESTAMP(6));
-SET @enrollment_id = LAST_INSERT_ID();
-INSERT INTO AttendanceRecords (SessionEnrollmentId, Attended, RecordedAt)
-VALUES (@enrollment_id, TRUE, UTC_TIMESTAMP(6));
-COMMIT;
+-- Executar como administrador após criar os dois bancos.
+-- Os papéis não contêm senhas nem criam contas de login.
+CREATE ROLE IF NOT EXISTS 'recriar_gravacao', 'recriar_consulta';
+GRANT SELECT, INSERT, UPDATE, DELETE ON recriar_prod.* TO 'recriar_gravacao';
+GRANT SELECT ON recriar_leitura.* TO 'recriar_consulta';
 
--- Consultas equivalentes às usadas pelo serviço. @... são variáveis desta sessão.
--- No C#, o EF Core transforma os valores recebidos em parâmetros SQL.
+-- Depois de criar duas contas LOCAIS no Workbench, por exemplo recriar_app e recriar_reader:
+-- GRANT 'recriar_gravacao' TO 'recriar_app'@'localhost';
+-- SET DEFAULT ROLE 'recriar_gravacao' TO 'recriar_app'@'localhost';
+-- GRANT 'recriar_consulta' TO 'recriar_reader'@'localhost';
+-- SET DEFAULT ROLE 'recriar_consulta' TO 'recriar_reader'@'localhost';
+-- Use contas novas, sem permissões globais ou outros papéis que permitam gravação.
 
--- 1. Listagem da tela principal, ordenada por Id.
-SELECT Id, Name, Cpf, Phone FROM Children ORDER BY Id;
-
--- 2. Pesquisa por trecho do nome. Escapa caracteres curinga digitados.
-SET @name = 'exemplo';
-SET @pattern = CONCAT('%', REPLACE(REPLACE(REPLACE(@name, '!', '!!'), '%', '!%'), '_', '!_'), '%');
-SELECT Id, Name, Cpf, Phone FROM Children WHERE Name LIKE @pattern ESCAPE '!' ORDER BY Id;
-
--- 3. Dados para edição e exportação da ficha.
-SET @selected_child_id = (SELECT MIN(Id) FROM Children);
-SELECT c.*, g.Id AS GuardianId, g.Name AS GuardianName, g.Cpf AS GuardianCpf, g.Rg AS GuardianRg,
- e.Id AS EmergencyContactId, e.Name AS EmergencyContactName, e.Phone AS EmergencyContactPhone
-FROM Children c LEFT JOIN Guardians g ON g.ChildId = c.Id
-LEFT JOIN EmergencyContacts e ON e.ChildId = c.Id WHERE c.Id = @selected_child_id;
-
--- 4. Familiares e nomes dos parentescos da criança selecionada.
-SELECT f.Id, f.Name, f.Age, f.RelationshipTypeId, r.Name AS RelationshipName, f.OtherRelationship
-FROM FamilyMembers f JOIN RelationshipTypes r ON r.Id = f.RelationshipTypeId
-WHERE f.ChildId = @selected_child_id ORDER BY f.Id;
-
--- 5. Opções do campo de parentesco.
-SELECT Id, Name FROM RelationshipTypes ORDER BY Id;
-
--- 6. Histórico das operações. Horários em UTC.
-SELECT Id, Action, Description, CreatedAt FROM ActivityLogs ORDER BY CreatedAt DESC, Id DESC;
-
--- 7. Extensão de oficinas: presenças e inscrições ainda não avaliadas.
-SELECT p.Name AS Program, a.Name AS Activity, s.StartsAt, c.Name AS Child,
- CASE WHEN ar.Id IS NULL THEN 'Não registrada' WHEN ar.Attended = 1 THEN 'Presente' ELSE 'Ausente' END AS Attendance
-FROM SessionEnrollments se
-JOIN Children c ON c.Id = se.ChildId
-JOIN ActivitySessions s ON s.Id = se.SessionId
-JOIN Activities a ON a.Id = s.ActivityId
-JOIN Programs p ON p.Id = a.ProgramId
-LEFT JOIN AttendanceRecords ar ON ar.SessionEnrollmentId = se.Id
-ORDER BY s.StartsAt, c.Id;
-
--- 8. Demonstração de edição e exclusão sem alterar os dados da entrega.
-START TRANSACTION;
-UPDATE Children SET Age = 9 WHERE Id = @selected_child_id;
-SELECT Id, Name, Age FROM Children WHERE Id = @selected_child_id;
-DELETE FROM Children WHERE Id = @selected_child_id;
-SELECT COUNT(*) AS ExpectedZero FROM FamilyMembers WHERE ChildId = @selected_child_id;
-ROLLBACK;
+USE recriar_prod;

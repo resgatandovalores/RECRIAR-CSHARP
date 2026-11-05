@@ -1,3 +1,4 @@
+USE recriar_leitura;
 -- Consultas equivalentes às usadas pelo serviço. @... são variáveis desta sessão.
 -- No C#, o EF Core transforma os valores recebidos em parâmetros SQL.
 
@@ -39,6 +40,8 @@ LEFT JOIN AttendanceRecords ar ON ar.SessionEnrollmentId = se.Id
 ORDER BY s.StartsAt, c.Id;
 
 -- 8. Demonstração de edição e exclusão sem alterar os dados da entrega.
+-- Esta parte deve ser executada com a conta de gravação.
+USE recriar_prod;
 START TRANSACTION;
 UPDATE Children SET Age = 9 WHERE Id = @selected_child_id;
 SELECT Id, Name, Age FROM Children WHERE Id = @selected_child_id;

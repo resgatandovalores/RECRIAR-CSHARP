@@ -52,7 +52,7 @@ Se o primeiro comando apontar conflito, confira os arquivos antes de continuar. 
 Confira a lista de arquivos. Depois salve e envie:
 
 ```powershell
-git add .gitignore Recriar.sln dotnet-tools.json src/Recriar.Infrastructure docs/database tests
+git add .gitignore Recriar.sln src/Recriar.Infrastructure docs/database tests
 git commit -m "Adiciona o banco de dados do RECRIAR"
 git push -u origin feature/leandro-database
 ```

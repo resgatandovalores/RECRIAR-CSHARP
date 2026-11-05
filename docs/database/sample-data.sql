@@ -1,3 +1,4 @@
+USE recriar_prod;
 -- Dados fictícios para demonstração. Executar somente em ambiente de desenvolvimento.
 START TRANSACTION;
 INSERT INTO Children (Name, Age, Cpf, Rg, Address, Neighborhood, City, School,
