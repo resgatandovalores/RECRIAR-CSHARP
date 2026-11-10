@@ -66,7 +66,7 @@ using Recriar.Infrastructure.Persistence.Repositories;
 using Recriar.Infrastructure.Logging;
 using Recriar.Infrastructure.Export;
 
-using var context = AppDbContextFactory.Create();
+var context = AppDbContextFactory.Create();
 IChildService service = new ChildService(
     new ChildRepository(context),
     new RelationshipTypeRepository(context),

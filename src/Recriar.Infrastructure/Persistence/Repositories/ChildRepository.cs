@@ -312,7 +312,10 @@ public class ChildRepository : IChildRepository
             command.Parameters.AddWithValue("@Cpf", person.Cpf);
             command.Parameters.AddWithValue("@Rg", person.Rg);
             command.ExecuteNonQuery();
-            if (id == 0) id = GetNewId(connection, transaction);
+            if (id == 0)
+            {
+                id = GetNewId(connection, transaction);
+            }
         }
         return id;
     }
@@ -336,7 +339,10 @@ public class ChildRepository : IChildRepository
             command.Parameters.AddWithValue("@Name", person.Name);
             command.Parameters.AddWithValue("@Phone", person.Phone);
             command.ExecuteNonQuery();
-            if (id == 0) id = GetNewId(connection, transaction);
+            if (id == 0)
+            {
+                id = GetNewId(connection, transaction);
+            }
         }
         return id;
     }
@@ -352,7 +358,10 @@ public class ChildRepository : IChildRepository
                 command.Parameters.AddWithValue("@childId", childId);
                 using (MySqlDataReader reader = command.ExecuteReader())
                 {
-                    while (reader.Read()) existingIds.Add(reader.GetInt32("Id"));
+                    while (reader.Read())
+                    {
+                        existingIds.Add(reader.GetInt32("Id"));
+                    }
                 }
             }
         }
@@ -377,13 +386,26 @@ public class ChildRepository : IChildRepository
             using (MySqlCommand command = new MySqlCommand(sql, connection, transaction))
             {
                 command.Parameters.AddWithValue("@typeId", member.RelationshipTypeId);
-                command.Parameters.AddWithValue("@other", (object?)member.OtherRelationship ?? DBNull.Value);
+                if (member.OtherRelationship == null)
+                {
+                    command.Parameters.AddWithValue("@other", DBNull.Value);
+                }
+                else
+                {
+                    command.Parameters.AddWithValue("@other", member.OtherRelationship);
+                }
                 command.Parameters.AddWithValue("@name", member.Name);
                 command.Parameters.AddWithValue("@age", member.Age);
                 command.Parameters.AddWithValue("@childId", childId);
-                if (id > 0) command.Parameters.AddWithValue("@id", id);
+                if (id > 0)
+                {
+                    command.Parameters.AddWithValue("@id", id);
+                }
                 command.ExecuteNonQuery();
-                if (id == 0) id = GetNewId(connection, transaction);
+                if (id == 0)
+                {
+                    id = GetNewId(connection, transaction);
+                }
                 savedIds.Add(id);
             }
         }

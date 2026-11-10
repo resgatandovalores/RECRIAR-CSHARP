@@ -92,7 +92,7 @@ try
     Exec($"GRANT SELECT, INSERT, UPDATE, DELETE ON `{prod}`.* TO '{writer}'@'localhost'");
     Exec($"GRANT SELECT ON `{read}`.* TO '{readerUser}'@'localhost'");
 
-    using AppDbContext context = new AppDbContext(WriteConnection(), ReadConnection());
+    AppDbContext context = new AppDbContext(WriteConnection(), ReadConnection());
     ChildRepository repo = new ChildRepository(context);
     CapturingErrorLogger errors = new CapturingErrorLogger();
     ChildService service = new ChildService(repo, new RelationshipTypeRepository(context), new DbActivityLogger(context), errors, new StubExporter());
@@ -186,8 +186,8 @@ try
     ChildService failedLog = new ChildService(repo,new RelationshipTypeRepository(context),new FailingLogger(),errors,new StubExporter());
     Check(failedLog.Register(Sample()) > 0 && errors.Count > 0, "cadastro permanece salvo quando o log falha");
     Check(service.ExportFile(id) == "ficha-teste.html", "servico chama exportador de teste e registra operacao");
-    using (AppDbContext reopened = new AppDbContext(WriteConnection(), ReadConnection()))
     {
+        AppDbContext reopened = new AppDbContext(WriteConnection(), ReadConnection());
         Child? loadedAgain = new ChildRepository(reopened).GetById(id);
         Check(loadedAgain != null && loadedAgain.FamilyMembers.Any(m => m.Id == kept), "nova instancia do programa le os dados e os IDs persistidos");
     }

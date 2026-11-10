@@ -2,9 +2,8 @@ using MySqlConnector;
 
 namespace Recriar.Infrastructure.Persistence.Context;
 
-// Keeps the connection settings. Each operation opens and closes its own connection.
-// The name was kept so the screens can use the constructors agreed by the team.
-public class AppDbContext : IDisposable
+// Stores the settings used to open the two connections.
+public class AppDbContext
 {
     private readonly string _writeConnectionString;
     private readonly string _readConnectionString;
@@ -23,10 +22,5 @@ public class AppDbContext : IDisposable
     public MySqlConnection CreateReadConnection()
     {
         return new MySqlConnection(_readConnectionString);
-    }
-
-    public void Dispose()
-    {
-        // Connections are disposed by the methods that use them.
     }
 }
