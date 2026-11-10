@@ -23,7 +23,7 @@ internal sealed class FamilyMemberForm : Form
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MinimizeBox = false;
         MaximizeBox = false;
-        ShowInTaskbar = false;
+        ShowInTaskbar = true;
 
         _relationship.AccessibleName = "Parentesco";
         _relationship.DisplayMember = nameof(RelationshipType.Name);

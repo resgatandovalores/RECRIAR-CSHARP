@@ -76,6 +76,8 @@ Preparei o MER com as entidades e os relacionamentos e gerei o EER no MySQL Work
 
 O projeto compilou sem erros nem avisos e passou por 42 verificações no MySQL. Foram testados cadastro, pesquisa, edição dos familiares, exclusão dos dados vinculados, transações e permissões de leitura. Também foi gerado e conferido o HTML real com os dados do banco.
 
-Na interface, foram conferidas a abertura do programa, a pesquisa, a abertura de uma ficha para edição e a mensagem quando a conexão está indisponível.
+Em 09/11/2026, corrigi a identificação das janelas de cadastro e familiar, ativando ShowInTaskbar nos dois formulários. Antes, a ferramenta tentava preencher os controles pela janela principal bloqueada. Depois do ajuste, consegui selecionar cada janela e preencher os campos. Isso resolveu o impedimento do teste automatizado da interface.
 
-Ainda falta fazer uma rodada manual completa pelos botões: salvar um cadastro novo, editar os familiares, fechar e reabrir o programa, exportar e excluir a ficha. Os testes usaram dados fictícios em um ambiente local, não uma instalação na ONG.
+Pela interface, cadastrei a ficha fictícia 2 com dois familiares, incluindo Outro/Primo, pesquisei e reabri a ficha. Na mesma edição, alterei um familiar, removi outro e incluí um novo. Salvei, fechei e reiniciei o aplicativo. O MySQL confirmou idade 9, o familiar mantido no Id 2 e o novo no Id 4. O botão Exportar ficha gerou o HTML com os dados atualizados. O Windows mostrou o seletor de aplicativo para abrir HTML; a visualização no navegador não foi concluída. Por fim, excluí a ficha pelo botão e confirmei zero registros da criança, responsável, contato e familiares, com o histórico preservado.
+
+Os testes foram feitos com dados fictícios em um ambiente local, sem usar uma instalação da ONG.

@@ -9,7 +9,7 @@
 
 ## O que mudou
 
-As alterações de integração estão em `src/Recriar.WinForms/Program.cs`. Os formulários do Pedro foram mantidos como vieram no PR.
+As alterações de integração estão em `src/Recriar.WinForms/Program.cs`. Os formulários do Pedro receberam apenas o ajuste de ShowInTaskbar descrito abaixo.
 
 CreateService deixou de devolver null. Ele usa AppDbContextFactory para obter a configuração e cria ChildRepository, RelationshipTypeRepository e DbActivityLogger e usa a fábrica CreateChildService já prevista pelas telas. MainForm recebe o serviço real. O exportador HtmlChildFileExporter e o FileErrorLogger foram preservados.
 
@@ -33,28 +33,15 @@ Esta solução usa dois schemas no mesmo servidor. As views mostram os dados atu
 
 ## Resultado das verificações
 
-| Verificação | Resultado e limite |
-|---|---|
-| Compilar Recriar.sln | Aprovado, zero erros e zero avisos. |
-| Criar estrutura e carregar parentescos | Aprovado em MySQL local; Outro no Id 9. |
-| Iniciar o Windows Forms com MySQL | Aprovado; tela principal listou uma ficha fictícia do banco. |
-| Pesquisar por parte do nome e abrir edição | Aprovado pela interface; a ficha foi carregada do MySQL. |
-| Salvar ficha com dois familiares, incluindo Outro | Aprovado pelo ChildService e MySQL. O preenchimento completo de um novo cadastro pela tela ainda não foi concluído. |
-| Reabrir e buscar os dados | Aprovado com uma nova instância do acesso ao banco. Fechar e reabrir a aplicação completa após salvar pela interface ainda precisa ser exercitado. |
-| Alterar, remover e incluir familiares na mesma edição | Aprovado pelo serviço, preservando o Id do familiar mantido. Salvar essas mudanças pelos botões da interface ainda está pendente. |
-| Exportar HTML real | Aprovado pelo serviço; arquivo e conteúdo conferidos com dados do MySQL. O botão e a abertura no navegador não foram conferidos nesta rodada. |
-| Excluir e conferir cascata e histórico | Aprovado pelo serviço e consultas no MySQL. O botão de confirmação da interface não foi exercitado. |
-| Iniciar com conexão indisponível | Aprovado pela interface; foi exibida uma orientação para conferir servidor, bancos e variáveis de ambiente. |
+A solução compilou com zero erros e zero avisos. As 42 verificações automáticas passaram novamente no MySQL 8.0.46 após o ajuste dos formulários.
 
-Foram aprovadas 42 verificações automáticas no MySQL 8.0.46. Os testes usam bancos e contas temporários com dados fictícios. Não foi usado servidor da ONG ou do trabalho.
+Em 09/11/2026, corrigi a identificação das janelas de cadastro e familiar, ativando ShowInTaskbar nos dois formulários. Antes, a ferramenta tentava preencher os controles pela janela principal bloqueada. Depois do ajuste, consegui selecionar cada janela e preencher os campos. Isso resolveu o impedimento do teste automatizado da interface.
 
-A automação dos controles do diálogo de edição não ficou confiável neste ambiente. Por isso, a abertura da ficha foi registrada como conferida, mas a conclusão das operações pelos botões não foi marcada como aprovada. Isso não altera o resultado dos testes do serviço.
+Pela interface, cadastrei a ficha fictícia 2 com dois familiares, incluindo Outro/Primo, pesquisei e reabri a ficha. Na mesma edição, alterei um familiar, removi outro e incluí um novo. Salvei, fechei e reiniciei o aplicativo. O MySQL confirmou idade 9, o familiar mantido no Id 2 e o novo no Id 4. O botão Exportar ficha gerou o HTML com os dados atualizados. O Windows mostrou o seletor de aplicativo para abrir HTML; a visualização no navegador não foi concluída. Por fim, excluí a ficha pelo botão e confirmei zero registros da criança, responsável, contato e familiares, com o histórico preservado.
 
-## O que conferir manualmente antes da apresentação
+Também foi conferida a mensagem de inicialização com conexão indisponível. Os testes usaram apenas dados fictícios em uma instância local separada na porta 33179. O MySQL habitual não foi alterado.
 
-Em uma instalação local de testes, abrir Novo cadastro e salvar uma ficha fictícia com dois familiares, incluindo Outro. Fechar e reabrir o aplicativo, pesquisar o nome e abrir a ficha. Na mesma edição, alterar um familiar, remover o outro e incluir um novo. Salvar e reabrir para conferir. Depois, exportar pelo botão e conferir o HTML no navegador. Por último, excluir a ficha pela interface e conferir os dados vinculados e o histórico.
-
-Essa rodada completa pela interface continua pendente. As telas e os serviços específicos de oficinas também não fazem parte desta integração.
+A geração do HTML pelo botão foi aprovada; a abertura visual no navegador continua sem confirmação. As telas e serviços de oficinas não fazem parte desta integração.
 
 ## Entrega e Git
 
