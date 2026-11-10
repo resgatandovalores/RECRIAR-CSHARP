@@ -6,6 +6,7 @@ using Recriar.Application.Services;
 using Recriar.Domain.Entities;
 using Recriar.Infrastructure.Persistence.Context;
 using Recriar.Infrastructure.Persistence.Repositories;
+using Recriar.Infrastructure.Export;
 
 string value = Environment.GetEnvironmentVariable("RECRIAR_TEST_CONNECTION_STRING")
     ?? throw new InvalidOperationException("Configure RECRIAR_TEST_CONNECTION_STRING para um MySQL local de testes.");
@@ -185,6 +186,29 @@ try
     ChildService failedLog = new ChildService(repo,new RelationshipTypeRepository(context),new FailingLogger(),errors,new StubExporter());
     Check(failedLog.Register(Sample()) > 0 && errors.Count > 0, "cadastro permanece salvo quando o log falha");
     Check(service.ExportFile(id) == "ficha-teste.html", "servico chama exportador de teste e registra operacao");
+    using (AppDbContext reopened = new AppDbContext(WriteConnection(), ReadConnection()))
+    {
+        Child? loadedAgain = new ChildRepository(reopened).GetById(id);
+        Check(loadedAgain != null && loadedAgain.FamilyMembers.Any(m => m.Id == kept), "nova instancia do programa le os dados e os IDs persistidos");
+    }
+    string exportFolder = Path.Combine(Path.GetTempPath(), "recriar_export_test_" + suffix);
+    string exportPath = Path.Combine(exportFolder, $"ficha_{id}.html");
+    try
+    {
+        ChildService actualExport = new ChildService(repo, new RelationshipTypeRepository(context),
+            new DbActivityLogger(context), errors, new HtmlChildFileExporter(exportFolder));
+        string path = actualExport.ExportFile(id);
+        Check(path == exportPath && File.Exists(path), "exportador real gera arquivo HTML a partir do MySQL");
+        string html = File.ReadAllText(path);
+        Check(html.Contains("Crianca Exemplo") && html.Contains("Responsavel Alterado")
+            && html.Contains("Familiar Alterado") && html.Contains("Primo"), "HTML real contem crianca, responsavel e familiares com parentescos");
+    }
+    finally
+    {
+        // Only remove the exact fictitious file and folder created by this test.
+        if (File.Exists(exportPath)) File.Delete(exportPath);
+        if (Directory.Exists(exportFolder)) Directory.Delete(exportFolder);
+    }
     service.Delete(id);
     Check(Count("Children","Id="+id)==0 && Count("Guardians","ChildId="+id)==0 && Count("EmergencyContacts","ChildId="+id)==0 && Count("FamilyMembers","ChildId="+id)==0 && Count("SessionEnrollments","ChildId="+id)==0 && Count("AttendanceRecords")==0,"exclusao em cascata remove dependentes e presenca");
     Check(repo.GetById(id)==null && !repo.Delete(id), "leitura mostra exclusao imediatamente e Delete inexistente retorna false");

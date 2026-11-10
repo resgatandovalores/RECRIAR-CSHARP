@@ -12,7 +12,7 @@ Abrir o PR não muda automaticamente a sandbox.
 
 ## Na cópia já preparada neste computador
 
-O trabalho está na branch feature/leandro-database e já tem commits locais. Dentro da pasta do repositório, confira:
+O trabalho está na branch integration/mysql-winforms e já tem commits locais. Dentro da pasta do repositório, confira:
 
 ```powershell
 git branch --show-current
@@ -23,7 +23,7 @@ git log -2 --oneline
 Depois de revisar, o comando de envio seria:
 
 ```powershell
-git push -u origin feature/leandro-database
+git push -u origin integration/mysql-winforms
 ```
 
 É necessário ter permissão de escrita no repositório. Se o GitHub pedir para entrar na conta, use o procedimento normal de login. Não coloque senha ou token nos arquivos do projeto.
@@ -35,7 +35,7 @@ Extraia o pacote da entrega. Clone o projeto em uma pasta nova e crie sua branch
 ```powershell
 git clone -b sandbox https://github.com/resgatandovalores/RECRIAR-CSHARP.git
 cd RECRIAR-CSHARP
-git switch -c feature/leandro-database
+git switch -c integration/mysql-winforms
 ```
 
 O arquivo alteracoes-banco.patch contém somente as mudanças da parte do banco. Troque o caminho do exemplo pelo local onde você extraiu o arquivo:
@@ -54,7 +54,7 @@ Confira a lista de arquivos. Depois salve e envie:
 ```powershell
 git add .gitignore Recriar.sln src/Recriar.Infrastructure docs/database tests
 git commit -m "Adiciona o banco de dados do RECRIAR"
-git push -u origin feature/leandro-database
+git push -u origin integration/mysql-winforms
 ```
 
 Se o Git pedir nome e e-mail para o commit, configure os dados que você usa na sua conta. Se faltar permissão para enviar, peça ao responsável para adicionar você como colaborador ou use o fluxo de fork do GitHub.
@@ -64,7 +64,7 @@ Se o Git pedir nome e e-mail para o commit, configure os dados que você usa na 
 1. Abra o repositório RECRIAR-CSHARP no GitHub.
 2. Entre em Pull requests e clique em New pull request. Também pode aparecer Compare & pull request depois do envio.
 3. Em **base**, selecione **sandbox**. Esse é o destino.
-4. Em **compare**, selecione **feature/leandro-database**. Essa é sua branch.
+4. Em **compare**, selecione **integration/mysql-winforms**. Essa é sua branch.
 5. Confira os arquivos da comparação.
 6. Use o título “Banco de dados do RECRIAR” e copie o texto de PR.md para a descrição.
 7. Clique em Create pull request. Depois, compartilhe o link com o grupo para revisão.

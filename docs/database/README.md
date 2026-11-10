@@ -75,7 +75,7 @@ IChildService service = new ChildService(
     new HtmlChildFileExporter());
 ```
 
-O Pedro deve passar service à tela. No WinForms, continua usando System.Windows.Forms.Application por extenso. Program.cs e os formulários não foram alterados nesta entrega.
+As telas do PR #9 foram integradas ao MySQL em Program.cs. CreateService agora cria os componentes reais e entrega o ChildService à MainForm. O código de abertura confere a conexão de gravação e a carga de parentescos da leitura, preservando o FileErrorLogger e System.Windows.Forms.Application por extenso. O desenho dos formulários foi mantido.
 
 AppDbContext agora é uma classe simples que guarda as configurações das duas conexões. O nome foi mantido por compatibilidade; ela não herda de DbContext e não usa o Entity Framework. Cada método abre e fecha a conexão de que precisa. A leitura vai para recriar_leitura e a gravação para recriar_prod.
 
@@ -98,7 +98,7 @@ As tabelas de oficinas estão preparadas e testadas no banco. Os serviços e as 
 
 ## Testes e diagramas
 
-O projeto compilou com zero erros e zero avisos. Passaram 39 verificações em MySQL real com ADO.NET, incluindo transações, edição de familiares, consultas, bloqueio de gravação na leitura, permissões das contas e exclusão em cascata.
+O projeto compilou com zero erros e zero avisos. Passaram 42 verificações em MySQL real com ADO.NET, incluindo transações, edição de familiares, consultas, bloqueio de gravação na leitura, permissões das contas e exclusão em cascata.
 
 Para repetir, configure RECRIAR_TEST_CONNECTION_STRING para um administrador de um MySQL local de testes e execute:
 
@@ -108,12 +108,16 @@ dotnet run --project tests/Recriar.Persistence.IntegrationTests
 
 Os testes criam dois bancos e duas contas com nomes aleatórios e removem somente esses objetos ao terminar. O usuário precisa ter permissão para isso. Eles não alteram recriar_prod nem recriar_leitura.
 
-As telas e a geração do HTML real não são testadas nesse programa; ele usa um exportador de teste. MER.png mostra o modelo conceitual. EER.png e RECRIAR.mwb mostram as 11 tabelas do principal. O desenho Dois_Bancos.svg explica a ligação entre os bancos.
+O programa de testes verifica o HTML real, inclusive seu conteúdo, além de usar um exportador de teste em outros cenários. A abertura, a pesquisa, a ficha de edição e o aviso de conexão indisponível também foram conferidos no Windows. O checklist completo de salvar, editar familiares, reabrir, exportar e excluir pelos botões ainda exige uma rodada manual; veja RELATORIO_INTEGRACAO.md. MER.png mostra o modelo conceitual. EER.png e RECRIAR.mwb mostram as 11 tabelas do principal. O desenho Dois_Bancos.svg explica a ligação entre os bancos.
 
 O guia COMO_ENTENDER_O_CODIGO.md ajuda a estudar o acesso ao banco. ENVIO_GITHUB.md explica o envio da branch para revisão. O destino do PR continua sendo sandbox.
 
+## Integração com as telas publicada pelo grupo
+
+As telas vieram do [PR #9](https://github.com/resgatandovalores/RECRIAR-CSHARP/pull/9), já incorporado à sandbox no commit fdcc5c0. A branch local desta entrega é integration/mysql-winforms. O arquivo RELATO_BANCO.md explica a parte feita em linguagem simples, sem sugestão de slides.
+
 ## Referências
 
-- Foto da aula enviada pelo grupo e classes da branch sandbox, commit base f6347f0.
+- Foto da aula enviada pelo grupo e classes da branch sandbox, atualizada com o PR #9 no commit fdcc5c0.
 - [API básica do MySqlConnector](https://mysqlconnector.net/tutorials/basic-api/).
 - [Views de leitura no MySQL](https://dev.mysql.com/doc/refman/8.0/en/view-algorithms.html).

@@ -1,13 +1,11 @@
-# Banco de dados com ADO.NET e acesso de leitura
+# Integração das telas do RECRIAR ao MySQL
 
-O acesso ao MySQL passa a usar SQL direto com MySqlCommand, parâmetros, ExecuteReader, ExecuteNonQuery e ExecuteScalar, conforme o exemplo da aula. As interfaces de cadastro e os nomes usados para montar o serviço foram mantidos.
+As telas incorporadas pelo PR #9 ainda iniciavam sem serviço de banco, pois CreateService retornava null. Esta entrega reúne essas telas com a persistência ADO.NET e monta os componentes reais no Program.cs. A MainForm passa a receber um ChildService conectado aos dois bancos locais.
 
-O instalador cria recriar_prod com 11 tabelas e recriar_leitura com 11 views de consulta. As views mostram os dados atuais do principal e bloqueiam alterações. Foram incluídos papéis separados para gravação e consulta. Essa solução usa dois schemas no mesmo servidor; não é uma réplica física.
+A abertura verifica a conexão de gravação e o parentesco Outro com Id 9 na leitura. Em caso de falha, mantém o log em arquivo e mostra uma orientação de configuração. Os formulários do Pedro e as regras de Domain e Application foram preservados.
 
-Cadastro e edição usam transações. A edição preserva os IDs dos familiares mantidos, inclui os novos e remove os que saíram. O registro de atividades usa outra conexão.
+Inclui os scripts de recriar_prod e recriar_leitura, os repositórios com SQL parametrizado, transações e permissões de consulta. O banco de leitura usa views no mesmo servidor, não uma réplica independente.
 
-Inclui SQL de instalação, dados fictícios separados, diagramas e guia de conexão com duas contas. Domain, Application e os formulários existentes foram preservados. As configurações e migrations do EF foram substituídas pelos scripts SQL.
+Validação: solution com zero erros e zero avisos; 42 verificações aprovadas em MySQL, incluindo exportação HTML real e nova instância de leitura. No Windows, foram conferidos abertura, pesquisa, abertura de ficha de edição e aviso com conexão indisponível. A rodada completa dos botões de criação, edição de familiares, exportação e exclusão ainda está pendente e está detalhada no relatório.
 
-Validação: compilação sem erros nem avisos e 39 verificações aprovadas no MySQL, incluindo permissões de leitura e rollback do cadastro e da edição. As telas e a geração do HTML real não foram validadas nesses testes. As oficinas estão modeladas no banco, ainda sem telas e serviços próprios.
-
-Falta conectar o ChildService às telas no Program.cs. O destino do PR é sandbox.
+Base: sandbox com o PR #9, commit fdcc5c0. Destino: sandbox. Branch local: integration/mysql-winforms.
