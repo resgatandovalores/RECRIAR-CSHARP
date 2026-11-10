@@ -56,7 +56,7 @@ internal sealed class ChildForm : Form
         AutoScaleMode = AutoScaleMode.Font;
         ClientSize = new Size(740, 590);
         MinimumSize = new Size(580, 450);
-        ShowInTaskbar = false;
+        ShowInTaskbar = true;
 
         var tabs = new TabControl { Dock = DockStyle.Fill };
         tabs.TabPages.Add(CreateFieldsTab("Criança",

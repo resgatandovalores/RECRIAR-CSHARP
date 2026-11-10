@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="620" viewBox="0 0 1400 620">
+<rect width="1400" height="620" fill="white"/>
+<style>text{font-family:Arial,sans-serif;fill:#111;font-size:25px}.title{font-size:32px;font-weight:bold}.head{font-size:27px;font-weight:bold}.small{font-size:22px}</style>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#222"/></marker></defs>
+<text x="700" y="55" text-anchor="middle" class="title">RECRIAR Produção e leitura</text>
+<rect x="50" y="190" width="300" height="170" fill="white" stroke="#222" stroke-width="2"/>
+<text x="200" y="235" text-anchor="middle" class="head">Programa C#</text>
+<text x="200" y="280" text-anchor="middle">ADO.NET</text>
+<text x="200" y="320" text-anchor="middle" class="small">MySqlCommand</text>
+<rect x="570" y="110" width="350" height="170" fill="white" stroke="#222" stroke-width="2"/>
+<text x="745" y="155" text-anchor="middle" class="head">recriar_prod</text>
+<text x="745" y="200" text-anchor="middle">11 tabelas</text>
+<text x="745" y="240" text-anchor="middle" class="small">Dados do cadastro</text>
+<rect x="570" y="370" width="350" height="170" fill="white" stroke="#222" stroke-width="2"/>
+<text x="745" y="415" text-anchor="middle" class="head">recriar_leitura</text>
+<text x="745" y="460" text-anchor="middle">11 views</text>
+<text x="745" y="500" text-anchor="middle" class="small">Somente consultas</text>
+<path d="M350 230 H450 V195 H550" fill="none" stroke="#222" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="445" y="175" text-anchor="middle" class="small">Gravação</text>
+<path d="M350 320 H450 V450 H550" fill="none" stroke="#222" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="445" y="490" text-anchor="middle" class="small">Consulta</text>
+<path d="M940 450 H1070 V200 H940" fill="none" stroke="#222" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="1100" y="310" class="small">As views leem</text>
+<text x="1100" y="345" class="small">os dados atuais</text>
+<text x="1100" y="380" class="small">do principal.</text>
+<text x="700" y="590" text-anchor="middle" class="small">Dois schemas no mesmo servidor MySQL. Esta solução não cria uma réplica independente.</text>
+</svg>

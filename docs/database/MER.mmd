@@ -1,0 +1,11 @@
+erDiagram
+ Children ||--o| Guardians : possui
+ Children ||--o| EmergencyContacts : possui
+ Children ||--o{ FamilyMembers : possui
+ RelationshipTypes ||--o{ FamilyMembers : classifica
+ Programs ||--o{ Activities : reune
+ Activities ||--o{ ActivitySessions : agenda
+ Children ||--o{ SessionEnrollments : realiza
+ ActivitySessions ||--o{ SessionEnrollments : recebe
+ SessionEnrollments ||--o| AttendanceRecords : registra
+ ActivityLogs { int Id PK }
