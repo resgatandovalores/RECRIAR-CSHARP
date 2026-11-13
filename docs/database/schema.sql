@@ -1,4 +1,4 @@
--- RECRIAR: estrutura das 11 tabelas. Executar em um banco novo selecionado.
+-- RECRIAR: estrutura das 15 tabelas. Executar em um banco novo selecionado.
 
 CREATE TABLE `ActivityLogs` (
     `Id` int NOT NULL AUTO_INCREMENT,
@@ -146,3 +146,44 @@ CREATE UNIQUE INDEX `IX_Guardians_ChildId` ON `Guardians` (`ChildId`);
 CREATE INDEX `IX_SessionEnrollments_ChildId` ON `SessionEnrollments` (`ChildId`);
 
 CREATE UNIQUE INDEX `IX_SessionEnrollments_SessionId_ChildId` ON `SessionEnrollments` (`SessionId`, `ChildId`);
+
+-- Estrutura de apoio às oficinas.
+CREATE TABLE `Units` (
+    `Id` int NOT NULL AUTO_INCREMENT,
+    `Name` varchar(100) NOT NULL,
+    `Address` varchar(150) NOT NULL,
+    `Phone` varchar(20) NOT NULL,
+    CONSTRAINT `PK_Units` PRIMARY KEY (`Id`)
+) CHARACTER SET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `Educators` (
+    `Id` int NOT NULL AUTO_INCREMENT,
+    `Name` varchar(100) NOT NULL,
+    `Phone` varchar(20) NOT NULL,
+    `ActivityId` int NOT NULL,
+    CONSTRAINT `PK_Educators` PRIMARY KEY (`Id`),
+    CONSTRAINT `FK_Educators_Activities` FOREIGN KEY (`ActivityId`) REFERENCES `Activities` (`Id`) ON DELETE RESTRICT
+) CHARACTER SET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `Volunteers` (
+    `Id` int NOT NULL AUTO_INCREMENT,
+    `Name` varchar(100) NOT NULL,
+    `Phone` varchar(20) NOT NULL,
+    `ProgramId` int NOT NULL,
+    CONSTRAINT `PK_Volunteers` PRIMARY KEY (`Id`),
+    CONSTRAINT `FK_Volunteers_Programs` FOREIGN KEY (`ProgramId`) REFERENCES `Programs` (`Id`) ON DELETE RESTRICT
+) CHARACTER SET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `Materials` (
+    `Id` int NOT NULL AUTO_INCREMENT,
+    `Name` varchar(100) NOT NULL,
+    `Quantity` int NOT NULL,
+    `ActivityId` int NOT NULL,
+    CONSTRAINT `PK_Materials` PRIMARY KEY (`Id`),
+    CONSTRAINT `CK_Materials_Quantity` CHECK (`Quantity` >= 0),
+    CONSTRAINT `FK_Materials_Activities` FOREIGN KEY (`ActivityId`) REFERENCES `Activities` (`Id`) ON DELETE RESTRICT
+) CHARACTER SET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+ALTER TABLE `ActivitySessions`
+    ADD COLUMN `UnitId` int NULL,
+    ADD CONSTRAINT `FK_ActivitySessions_Units` FOREIGN KEY (`UnitId`) REFERENCES `Units` (`Id`) ON DELETE RESTRICT;

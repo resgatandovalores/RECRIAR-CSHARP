@@ -9,11 +9,11 @@
 <text x="200" y="320" text-anchor="middle" class="small">MySqlCommand</text>
 <rect x="570" y="110" width="350" height="170" fill="white" stroke="#222" stroke-width="2"/>
 <text x="745" y="155" text-anchor="middle" class="head">recriar_prod</text>
-<text x="745" y="200" text-anchor="middle">11 tabelas</text>
+<text x="745" y="200" text-anchor="middle">15 tabelas</text>
 <text x="745" y="240" text-anchor="middle" class="small">Dados do cadastro</text>
 <rect x="570" y="370" width="350" height="170" fill="white" stroke="#222" stroke-width="2"/>
 <text x="745" y="415" text-anchor="middle" class="head">recriar_leitura</text>
-<text x="745" y="460" text-anchor="middle">11 views</text>
+<text x="745" y="460" text-anchor="middle">15 views</text>
 <text x="745" y="500" text-anchor="middle" class="small">Somente consultas</text>
 <path d="M350 230 H450 V195 H550" fill="none" stroke="#222" stroke-width="2" marker-end="url(#arrow)"/>
 <text x="445" y="175" text-anchor="middle" class="small">Gravação</text>
