@@ -18,13 +18,8 @@ INSERT INTO Programs (Name, Description) VALUES ('Programa Exemplo', 'Programa f
 SET @program_id = LAST_INSERT_ID();
 INSERT INTO Activities (ProgramId, Name) VALUES (@program_id, 'Oficina Exemplo');
 SET @activity_id = LAST_INSERT_ID();
-INSERT INTO Units (Name, Address, Phone) VALUES ('Unidade Exemplo', 'Rua Exemplo', '0000000000');
-SET @unit_id = LAST_INSERT_ID();
-INSERT INTO Educators (Name, Phone, ActivityId) VALUES ('Educador Exemplo', '0000000000', @activity_id);
-INSERT INTO Volunteers (Name, Phone, ProgramId) VALUES ('Voluntario Exemplo', '0000000000', @program_id);
-INSERT INTO Materials (Name, Quantity, ActivityId) VALUES ('Papel', 20, @activity_id);
-INSERT INTO ActivitySessions (ActivityId, StartsAt, EndsAt, Location, UnitId)
-VALUES (@activity_id, '2026-11-01 09:00:00', '2026-11-01 10:00:00', 'Sala Exemplo', @unit_id);
+INSERT INTO ActivitySessions (ActivityId, StartsAt, EndsAt, Location)
+VALUES (@activity_id, '2026-11-01 09:00:00', '2026-11-01 10:00:00', 'Sala Exemplo');
 SET @session_id = LAST_INSERT_ID();
 INSERT INTO SessionEnrollments (ChildId, SessionId, RegisteredAt)
 VALUES (@child_id, @session_id, UTC_TIMESTAMP(6));

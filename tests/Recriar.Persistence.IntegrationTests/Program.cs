@@ -18,8 +18,6 @@ string suffix = Guid.NewGuid().ToString("N");
 string prod = "recriar_test_p_" + suffix;
 string read = "recriar_test_r_" + suffix;
 string writer = "rtw_" + suffix[..20];
-string upgradeProd = prod + "_old";
-string upgradeRead = read + "_old";
 string readerUser = "rtr_" + suffix[..20];
 string writerPassword = Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(24));
 string readerPassword = Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(24));
@@ -102,12 +100,12 @@ try
     using (MySqlCommand command = new MySqlCommand("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = @db AND TABLE_TYPE = 'BASE TABLE'", admin))
     {
         command.Parameters.AddWithValue("@db", prod);
-        Check(Convert.ToInt32(command.ExecuteScalar()) == 15, "producao tem 15 tabelas");
+        Check(Convert.ToInt32(command.ExecuteScalar()) == 11, "producao tem 11 tabelas");
     }
     using (MySqlCommand command = new MySqlCommand("SELECT COUNT(*) FROM information_schema.views WHERE table_schema = @db AND IS_UPDATABLE = 'NO'", admin))
     {
         command.Parameters.AddWithValue("@db", read);
-        Check(Convert.ToInt32(command.ExecuteScalar()) == 15, "leitura tem 15 views sem permissao estrutural de atualizacao");
+        Check(Convert.ToInt32(command.ExecuteScalar()) == 11, "leitura tem 11 views sem permissao estrutural de atualizacao");
     }
     var types = service.GetRelationshipTypes();
     Check(types.Count == 9 && types[8].Id == 9 && types[8].Name == "Outro", "leitura dos nove parentescos com Outro no Id 9");
@@ -181,31 +179,6 @@ try
     Reject(() => Exec($"INSERT INTO `{prod}`.AttendanceRecords (SessionEnrollmentId,Attended,RecordedAt) VALUES (1,0,UTC_TIMESTAMP())"), "segunda presenca da mesma inscricao bloqueada");
     Reject(() => Exec($"INSERT INTO `{prod}`.ActivitySessions (ActivityId,StartsAt,EndsAt,Location) VALUES (1,'2026-11-06 10:00','2026-11-06 09:00','Sala')"), "fim do encontro deve ocorrer depois do inicio");
 
-    Exec($"INSERT INTO `{prod}`.Units (Name,Address,Phone) VALUES ('Unidade Teste','Rua Teste','00123')");
-    Exec($"INSERT INTO `{prod}`.Educators (Name,Phone,ActivityId) VALUES ('Educador Teste','00123',1)");
-    Exec($"INSERT INTO `{prod}`.Volunteers (Name,Phone,ProgramId) VALUES ('Voluntario Teste','00123',1)");
-    Exec($"INSERT INTO `{prod}`.Materials (Name,Quantity,ActivityId) VALUES ('Papel',20,1)");
-    Exec($"UPDATE `{prod}`.ActivitySessions SET UnitId=1 WHERE Id=1");
-    Check(Count("Units")==1 && Count("Educators")==1 && Count("Volunteers")==1 && Count("Materials")==1,
-        "quatro entidades novas salvas com seus vinculos");
-    Reject(() => Exec($"INSERT INTO `{prod}`.Educators (Name,Phone,ActivityId) VALUES ('Teste','0',2147483647)"), "educador sem atividade bloqueado");
-    Reject(() => Exec($"INSERT INTO `{prod}`.Volunteers (Name,Phone,ProgramId) VALUES ('Teste','0',2147483647)"), "voluntario sem programa bloqueado");
-    Reject(() => Exec($"INSERT INTO `{prod}`.Materials (Name,Quantity,ActivityId) VALUES ('Teste',1,2147483647)"), "material sem atividade bloqueado");
-    Reject(() => Exec($"UPDATE `{prod}`.ActivitySessions SET UnitId=2147483647 WHERE Id=1"), "encontro com unidade inexistente bloqueado");
-    Reject(() => Exec($"UPDATE `{prod}`.Materials SET Quantity=-1 WHERE Id=1"), "quantidade negativa de material bloqueada");
-    Reject(() => Exec($"DELETE FROM `{prod}`.Units WHERE Id=1"), "unidade com encontro protegida contra exclusao");
-    using (MySqlConnection ro = context.CreateReadConnection())
-    {
-        ro.Open();
-        foreach (string table in new[] { "Units", "Educators", "Volunteers", "Materials" })
-        {
-            using MySqlCommand command = new MySqlCommand($"SELECT COUNT(*) FROM `{table}`", ro);
-            Check(Convert.ToInt32(command.ExecuteScalar())==1, "conta de leitura consulta " + table);
-            command.CommandText=$"DELETE FROM `{table}` WHERE Id=1";
-            Reject(() => command.ExecuteNonQuery(), "conta de leitura nao altera " + table);
-        }
-    }
-
     DbActivityLogger logger = new DbActivityLogger(context);
     Reject(() => logger.Log(new string('x',101), "Teste"), "falha de log por texto acima do tamanho");
     logger.Log("Teste","Proxima operacao funciona");
@@ -248,47 +221,11 @@ try
         .Replace("recriar_prod",prod).Replace("recriar_leitura",read);
     Exec(querySql);
     Check(Count("Children") == beforeSample + 1, "consultas de demonstracao executam e ROLLBACK preserva os cadastros");
-    string originalSchema = File.ReadAllText(Path.Combine(FindRoot(), "docs/database/schema.sql"))
-        .Split("-- Estrutura de apoio às oficinas.")[0];
-    Exec($"CREATE DATABASE `{upgradeProd}` CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci; USE `{upgradeProd}`");
-    Exec(originalSchema);
-    Exec($"CREATE DATABASE `{upgradeRead}` CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci");
-    string oldViews = File.ReadAllText(Path.Combine(FindRoot(), "docs/database/dois-bancos/02_criar_leitura.sql"));
-    foreach (string statement in oldViews.Split(';'))
-    {
-        if (!statement.Contains("VIEW `")) continue;
-        if (new[] { "Units", "Educators", "Volunteers", "Materials" }.Any(t => statement.Contains("VIEW `" + t + "`"))) continue;
-        Exec($"USE `{upgradeRead}`");
-        Exec(statement.Replace(", `UnitId`", "").Replace("recriar_prod", upgradeProd));
-    }
-    // Use the administrator's actual settings for this separate upgrade fixture.
-    MySqlConnectionStringBuilder upgradeSettings = new MySqlConnectionStringBuilder(settings.ConnectionString);
-    upgradeSettings.Database=upgradeProd;
-    MySqlConnectionStringBuilder upgradeReadSettings = new MySqlConnectionStringBuilder(settings.ConnectionString);
-    upgradeReadSettings.Database=upgradeRead;
-    AppDbContext oldContext = new AppDbContext(upgradeSettings.ConnectionString, upgradeReadSettings.ConnectionString);
-    ChildRepository oldRepo = new ChildRepository(oldContext);
-    ChildService oldService = new ChildService(oldRepo, new RelationshipTypeRepository(oldContext), new DbActivityLogger(oldContext), errors, new StubExporter());
-    int oldId=oldService.Register(Sample());
-    string upgradeSql=File.ReadAllText(Path.Combine(FindRoot(), "docs/database/atualizar_11_para_15.sql"))
-        .Replace("recriar_prod", upgradeProd).Replace("recriar_leitura", upgradeRead);
-    Exec(upgradeSql);
-    Check(oldRepo.GetById(oldId)?.FamilyMembers.Count==2, "atualizacao de 11 para 15 preserva cadastro e familiares");
-    using (MySqlCommand command = new MySqlCommand("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=@db AND TABLE_TYPE='BASE TABLE'",admin))
-    {
-        command.Parameters.AddWithValue("@db",upgradeProd);
-        Check(Convert.ToInt32(command.ExecuteScalar())==15,"atualizacao cria exatamente 15 tabelas");
-        command.CommandText="SELECT COUNT(*) FROM information_schema.views WHERE table_schema=@db AND IS_UPDATABLE='NO'";
-        command.Parameters["@db"].Value=upgradeRead;
-        Check(Convert.ToInt32(command.ExecuteScalar())==15,"atualizacao cria 15 views de leitura");
-    }
     Console.WriteLine($"RESULTADO: {passed} verificacoes aprovadas em MySQL com ADO.NET.");
 }
 finally
 {
     // These schemas and accounts were created above with random names for this run only.
-    Exec($"DROP DATABASE IF EXISTS `{upgradeRead}`");
-    Exec($"DROP DATABASE IF EXISTS `{upgradeProd}`");
     Exec($"DROP DATABASE IF EXISTS `{read}`");
     Exec($"DROP DATABASE IF EXISTS `{prod}`");
     Exec($"DROP USER IF EXISTS '{writer}'@'localhost', '{readerUser}'@'localhost'");

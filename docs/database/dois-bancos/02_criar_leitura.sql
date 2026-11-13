@@ -1,5 +1,7 @@
--- Banco de consulta no mesmo servidor. As views não permitem gravação.
--- A conta que cria as views deve continuar existindo com acesso ao principal.
+-- Banco de consulta, no mesmo servidor do principal.
+-- As views mostram os dados atuais do banco principal, sem guardar uma cópia.
+-- TEMPTABLE impede INSERT, UPDATE e DELETE pelas views.
+-- Execute como administrador. A conta que cria as views precisa continuar existindo.
 CREATE DATABASE recriar_leitura CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 USE recriar_leitura;
 
@@ -28,22 +30,10 @@ CREATE ALGORITHM=TEMPTABLE SQL SECURITY DEFINER VIEW `FamilyMembers` AS
 SELECT `Id`, `RelationshipTypeId`, `OtherRelationship`, `Name`, `Age`, `ChildId` FROM `recriar_prod`.`FamilyMembers`;
 
 CREATE ALGORITHM=TEMPTABLE SQL SECURITY DEFINER VIEW `ActivitySessions` AS
-SELECT `Id`, `ActivityId`, `StartsAt`, `EndsAt`, `Location`, `UnitId` FROM `recriar_prod`.`ActivitySessions`;
+SELECT `Id`, `ActivityId`, `StartsAt`, `EndsAt`, `Location` FROM `recriar_prod`.`ActivitySessions`;
 
 CREATE ALGORITHM=TEMPTABLE SQL SECURITY DEFINER VIEW `SessionEnrollments` AS
 SELECT `Id`, `ChildId`, `SessionId`, `RegisteredAt` FROM `recriar_prod`.`SessionEnrollments`;
 
 CREATE ALGORITHM=TEMPTABLE SQL SECURITY DEFINER VIEW `AttendanceRecords` AS
 SELECT `Id`, `SessionEnrollmentId`, `Attended`, `RecordedAt` FROM `recriar_prod`.`AttendanceRecords`;
-
-CREATE ALGORITHM=TEMPTABLE SQL SECURITY DEFINER VIEW `Units` AS
-SELECT `Id`, `Name`, `Address`, `Phone` FROM `recriar_prod`.`Units`;
-
-CREATE ALGORITHM=TEMPTABLE SQL SECURITY DEFINER VIEW `Educators` AS
-SELECT `Id`, `Name`, `Phone`, `ActivityId` FROM `recriar_prod`.`Educators`;
-
-CREATE ALGORITHM=TEMPTABLE SQL SECURITY DEFINER VIEW `Volunteers` AS
-SELECT `Id`, `Name`, `Phone`, `ProgramId` FROM `recriar_prod`.`Volunteers`;
-
-CREATE ALGORITHM=TEMPTABLE SQL SECURITY DEFINER VIEW `Materials` AS
-SELECT `Id`, `Name`, `Quantity`, `ActivityId` FROM `recriar_prod`.`Materials`;

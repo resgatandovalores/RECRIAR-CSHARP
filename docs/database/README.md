@@ -6,8 +6,8 @@ Esta versão usa SQL direto com ADO.NET, seguindo o modelo de acesso ao banco mo
 
 | Banco | Para que serve |
 |---|---|
-| recriar_prod | Guarda os dados nas 15 tabelas. Recebe inclusões, alterações e exclusões. |
-| recriar_leitura | Possui 15 views para consultar os dados atuais do banco principal. |
+| recriar_prod | Guarda os dados nas 11 tabelas. Recebe inclusões, alterações e exclusões. |
+| recriar_leitura | Possui 11 views para consultar os dados atuais do banco principal. |
 
 Uma view é uma consulta salva que aparece como uma tabela para quem consulta. Ela não guarda outra cópia dos dados. Quando o cadastro muda no banco principal, a próxima consulta no banco de leitura já vê a mudança. As views foram criadas com ALGORITHM=TEMPTABLE, que impede inclusão, edição e exclusão por elas.
 
@@ -18,31 +18,12 @@ O nome recriar_prod identifica o banco principal do projeto. O pacote é para in
 ## Como instalar no MySQL
 
 1. Entre no MySQL Workbench com uma conta administradora.
-2. Abra `database.sql` e execute o arquivo completo. Ele cria os dois bancos novos, as 15 tabelas, as 15 views, os parentescos e os papéis de acesso. Não apaga bancos existentes e não inclui crianças fictícias.
+2. Abra `database.sql` e execute o arquivo completo. Ele cria os dois bancos novos, as 11 tabelas, as 11 views, os parentescos e os papéis de acesso. Não apaga bancos existentes e não inclui crianças fictícias.
 3. Se recriar_prod ou recriar_leitura já existir, pare e confira o que há nesses bancos antes de executar o instalador. Comandos de estrutura não são desfeitos por ROLLBACK no MySQL.
 4. Para mostrar exemplos, execute `sample-data.sql` somente em uma instalação local destinada a testes.
 5. Execute as consultas de `queries.sql`. A demonstração de edição e exclusão fica em uma transação desfeita com ROLLBACK.
 
 Os mesmos passos de criação estão separados em `dois-bancos/01_criar_prod.sql`, `02_criar_leitura.sql` e `03_permissoes.sql`. Escolha o instalador completo ou os arquivos separados; não execute ambos na mesma instalação.
-
-## Para quem já instalou a versão de 11 tabelas
-
-Faça um backup e execute `atualizar_11_para_15.sql` uma única vez no Workbench, com uma conta administradora. Ele acrescenta quatro tabelas, o campo opcional UnitId em ActivitySessions e as views correspondentes. Não apaga os cadastros existentes.
-
-Não execute o instalador completo novamente em um banco existente. Quem instalar do zero usa apenas `database.sql`. Se a atualização tiver sido interrompida, confira o que já foi criado antes de tentar novamente, porque os comandos de estrutura não são desfeitos por ROLLBACK.
-
-## As quatro entidades acrescentadas
-
-- Educators: educadores vinculados a uma atividade/oficina.
-- Volunteers: voluntários vinculados a um programa.
-- Units: unidades da ONG, com nome, endereço e telefone. Uma unidade recebe vários encontros.
-- Materials: materiais de uma atividade, com nome e quantidade inteira não negativa.
-
-Para manter o modelo simples, cada educador fica vinculado a uma atividade e cada voluntário a um programa. Atuar em vários deles exigiria tabelas de associação. Materials representa a quantidade disponível para aquela atividade, sem controle de movimentação de estoque.
-
-O UnitId é opcional para preservar os encontros anteriores. Location continua sendo a descrição do local ou sala. As ligações impedem excluir unidades, atividades ou programas enquanto houver registros dependentes.
-
-As quatro entidades novas têm estrutura, dados fictícios e consultas no banco. Ainda não possuem telas nem serviços próprios no C#.
 
 ## Contas para gravação e consulta
 
@@ -89,7 +70,7 @@ var context = AppDbContextFactory.Create();
 IChildService service = new ChildService(
     new ChildRepository(context),
     new RelationshipTypeRepository(context),
-    new DbActivityLogger(context),
+    new DbActivityLogger(),
     new FileErrorLogger(),
     new HtmlChildFileExporter());
 ```
@@ -104,7 +85,7 @@ A gravação do cadastro usa uma transação: se falhar alguma parte, o conjunto
 
 ## Regras preservadas
 
-- As 15 tabelas são Children, Guardians, EmergencyContacts, FamilyMembers, RelationshipTypes, ActivityLogs, Programs, Activities, ActivitySessions, SessionEnrollments, AttendanceRecords, Educators, Volunteers, Units e Materials.
+- As 11 tabelas são Children, Guardians, EmergencyContacts, FamilyMembers, RelationshipTypes, ActivityLogs, Programs, Activities, ActivitySessions, SessionEnrollments e AttendanceRecords.
 - Cada criança tem no máximo um registro de responsável e um de contato. O serviço exige os dois ao cadastrar. Uma inserção direta por SQL ainda pode omitir esses registros dependentes.
 - O catálogo tem nove parentescos; Outro é sempre Id 9. A descrição de Outro e o limite de dez familiares são conferidos pelo serviço.
 - CPF, RG e telefone são texto. CPF pode se repetir. As idades aceitas vão de 0 a 120, conforme o código original.
@@ -117,7 +98,7 @@ As tabelas de oficinas estão preparadas e testadas no banco. Os serviços e as 
 
 ## Testes e diagramas
 
-O projeto compilou com zero erros e zero avisos. Passaram 60 verificações em MySQL real com ADO.NET, incluindo transações, edição de familiares, consultas, bloqueio de gravação na leitura, permissões das contas e exclusão em cascata.
+O projeto compilou com zero erros e zero avisos. Passaram 42 verificações em MySQL real com ADO.NET, incluindo transações, edição de familiares, consultas, bloqueio de gravação na leitura, permissões das contas e exclusão em cascata.
 
 Para repetir, configure RECRIAR_TEST_CONNECTION_STRING para um administrador de um MySQL local de testes e execute:
 
@@ -127,7 +108,7 @@ dotnet run --project tests/Recriar.Persistence.IntegrationTests
 
 Os testes criam dois bancos e duas contas com nomes aleatórios e removem somente esses objetos ao terminar. O usuário precisa ter permissão para isso. Eles não alteram recriar_prod nem recriar_leitura.
 
-O programa de testes verifica o HTML real, inclusive seu conteúdo, além de usar um exportador de teste em outros cenários. Pela interface, cadastrei a ficha fictícia 2 com dois familiares, incluindo Outro/Primo, pesquisei e reabri a ficha. Na mesma edição, alterei um familiar, removi outro e incluí um novo. Salvei, fechei e reiniciei o aplicativo. O MySQL confirmou idade 9, o familiar mantido no Id 2 e o novo no Id 4. O botão Exportar ficha gerou o HTML com os dados atualizados. O Windows mostrou o seletor de aplicativo para abrir HTML; a visualização no navegador não foi concluída. Por fim, excluí a ficha pelo botão e confirmei zero registros da criança, responsável, contato e familiares, com o histórico preservado. Veja RELATORIO_INTEGRACAO.md. MER.png mostra o modelo conceitual. EER.png e RECRIAR.mwb mostram as 15 tabelas do principal. O desenho Dois_Bancos.svg explica a ligação entre os bancos.
+O programa de testes verifica o HTML real, inclusive seu conteúdo, além de usar um exportador de teste em outros cenários. Pela interface, cadastrei a ficha fictícia 2 com dois familiares, incluindo Outro/Primo, pesquisei e reabri a ficha. Na mesma edição, alterei um familiar, removi outro e incluí um novo. Salvei, fechei e reiniciei o aplicativo. O MySQL confirmou idade 9, o familiar mantido no Id 2 e o novo no Id 4. O botão Exportar ficha gerou o HTML com os dados atualizados. O Windows mostrou o seletor de aplicativo para abrir HTML; a visualização no navegador não foi concluída. Por fim, excluí a ficha pelo botão e confirmei zero registros da criança, responsável, contato e familiares, com o histórico preservado. Veja RELATORIO_INTEGRACAO.md. MER.png mostra o modelo conceitual. EER.png e RECRIAR.mwb mostram as 11 tabelas do principal. O desenho Dois_Bancos.svg explica a ligação entre os bancos.
 
 O guia COMO_ENTENDER_O_CODIGO.md ajuda a estudar o acesso ao banco. ENVIO_GITHUB.md explica o envio da branch para revisão. O destino do PR continua sendo sandbox.
 

@@ -8,7 +8,7 @@ Comecei pelas classes e pelo guia do grupo pra manter os mesmos campos e regras.
 
 ## Organização das tabelas
 
-O banco principal tem 15 tabelas:
+O banco principal tem 11 tabelas:
 
 | Tabela | O que guarda |
 |---|---|
@@ -23,16 +23,12 @@ O banco principal tem 15 tabelas:
 | ActivitySessions | Os encontros, com horário e local. |
 | SessionEnrollments | As inscrições nos encontros. |
 | AttendanceRecords | A presença ou falta de cada inscrição. |
-| Educators | Os educadores de uma oficina. |
-| Volunteers | Os voluntários de um programa. |
-| Units | As unidades onde acontecem os encontros. |
-| Materials | Os materiais e as quantidades de cada oficina. |
 
 Separei os dados por assunto. Os familiares, por exemplo, ficam em registros próprios ligados à criança, em vez de criar várias colunas para familiar 1, familiar 2 e assim por diante.
 
 Cada registro tem um Id, que é a chave primária. A chave estrangeira faz a ligação com outra tabela. O ChildId de um familiar indica a qual criança ele pertence.
 
-Comecei com as cinco tabelas de oficinas e depois acrescentei educadores, voluntários, unidades e materiais, porque o mínimo informado passou a ser 15 entidades. As novas tabelas têm ligação com os programas, as atividades e os encontros. Essa parte está pronta no banco, mas ainda não tem telas nem funções próprias no programa.
+As cinco tabelas de oficinas completam as 11 pedidas e permitem organizar a participação das crianças nas atividades. Essa estrutura está pronta no banco, mas ainda não tem telas nem funções próprias no programa.
 
 ## Regras que mantive
 
@@ -60,7 +56,7 @@ Na edição dos familiares, o código atualiza os que continuam, inclui os novos
 
 ## Produção e leitura
 
-Preparei o recriar_prod para guardar os dados nas 15 tabelas e receber as gravações. O recriar_leitura tem 15 views que consultam esses dados. Uma view é uma consulta salva, então ela mostra os dados atuais do principal sem guardar outra cópia.
+Preparei o recriar_prod para guardar os dados nas 11 tabelas e receber as gravações. O recriar_leitura tem 11 views que consultam esses dados. Uma view é uma consulta salva, então ela mostra os dados atuais do principal sem guardar outra cópia.
 
 As views não permitem gravação. Também preparei permissões separadas para a conta de gravação e para a conta de consulta. As senhas ficam fora do código, e os dados das duas conexões são configurados por variáveis de ambiente.
 
@@ -78,14 +74,10 @@ Também preparei o registro de atividades para guardar cadastro, edição, exclu
 
 Preparei o MER com as entidades e os relacionamentos e gerei o EER no MySQL Workbench a partir do banco. A entrega também tem os scripts de instalação, dados fictícios separados e consultas de exemplo.
 
-O projeto compilou sem erros nem avisos e passou por 60 verificações no MySQL. Foram testados cadastro, pesquisa, edição dos familiares, exclusão dos dados vinculados, transações e permissões de leitura. Também foi gerado e conferido o HTML real com os dados do banco.
+O projeto compilou sem erros nem avisos e passou por 42 verificações no MySQL. Foram testados cadastro, pesquisa, edição dos familiares, exclusão dos dados vinculados, transações e permissões de leitura. Também foi gerado e conferido o HTML real com os dados do banco.
 
 Em 09/11/2026, corrigi a identificação das janelas de cadastro e familiar, ativando ShowInTaskbar nos dois formulários. Antes, a ferramenta tentava preencher os controles pela janela principal bloqueada. Depois do ajuste, consegui selecionar cada janela e preencher os campos. Isso resolveu o impedimento do teste automatizado da interface.
 
 Pela interface, cadastrei a ficha fictícia 2 com dois familiares, incluindo Outro/Primo, pesquisei e reabri a ficha. Na mesma edição, alterei um familiar, removi outro e incluí um novo. Salvei, fechei e reiniciei o aplicativo. O MySQL confirmou idade 9, o familiar mantido no Id 2 e o novo no Id 4. O botão Exportar ficha gerou o HTML com os dados atualizados. O Windows mostrou o seletor de aplicativo para abrir HTML; a visualização no navegador não foi concluída. Por fim, excluí a ficha pelo botão e confirmei zero registros da criança, responsável, contato e familiares, com o histórico preservado.
 
 Os testes foram feitos com dados fictícios em um ambiente local, sem usar uma instalação da ONG.
-
-## Atualização para 15 entidades
-
-Preparei um script separado para quem já criou o banco com 11 tabelas. Ele acrescenta as quatro novas sem apagar os cadastros. Testei essa atualização e conferi que a criança e seus familiares continuaram salvos. Também atualizei os diagramas, o modelo do Workbench, os exemplos e as consultas.

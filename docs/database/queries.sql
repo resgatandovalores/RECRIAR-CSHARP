@@ -1,6 +1,6 @@
 USE recriar_leitura;
 -- Consultas equivalentes às usadas pelo serviço. @... são variáveis desta sessão.
--- No C#, os valores são enviados como parâmetros do MySqlCommand.
+-- No C#, o EF Core transforma os valores recebidos em parâmetros SQL.
 
 -- 1. Listagem da tela principal, ordenada por Id.
 SELECT Id, Name, Cpf, Phone FROM Children ORDER BY Id;
@@ -48,15 +48,3 @@ SELECT Id, Name, Age FROM Children WHERE Id = @selected_child_id;
 DELETE FROM Children WHERE Id = @selected_child_id;
 SELECT COUNT(*) AS ExpectedZero FROM FamilyMembers WHERE ChildId = @selected_child_id;
 ROLLBACK;
-
-
--- 9. Unidade de cada encontro. Encontros antigos podem estar sem unidade.
-USE recriar_leitura;
-SELECT a.Name AS Activity, s.StartsAt, u.Name AS Unit, s.Location AS Room
-FROM ActivitySessions s JOIN Activities a ON a.Id = s.ActivityId
-LEFT JOIN Units u ON u.Id = s.UnitId ORDER BY s.StartsAt;
-
--- 10. Educadores, voluntários e materiais vinculados.
-SELECT e.Name AS Educator, a.Name AS Activity FROM Educators e JOIN Activities a ON a.Id = e.ActivityId;
-SELECT v.Name AS Volunteer, p.Name AS Program FROM Volunteers v JOIN Programs p ON p.Id = v.ProgramId;
-SELECT m.Name AS Material, m.Quantity, a.Name AS Activity FROM Materials m JOIN Activities a ON a.Id = m.ActivityId;
