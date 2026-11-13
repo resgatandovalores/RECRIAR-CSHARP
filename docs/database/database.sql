@@ -1,11 +1,11 @@
--- RECRIAR: instalar os dois bancos NOVOS. Executar como administrador.
+-- RECRIAR: instalação nova com 15 tabelas e 15 views.
 
--- Primeira instalação do banco principal. Não apaga bancos existentes.
+-- Instalação em um banco novo. Não apaga bancos existentes.
 CREATE DATABASE recriar_prod CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 USE recriar_prod;
 SET NAMES utf8mb4;
 
--- RECRIAR: estrutura das 11 tabelas. Executar em um banco novo selecionado.
+-- RECRIAR: estrutura das 15 tabelas. Executar em um banco novo selecionado.
 
 CREATE TABLE `ActivityLogs` (
     `Id` int NOT NULL AUTO_INCREMENT,
@@ -154,10 +154,49 @@ CREATE INDEX `IX_SessionEnrollments_ChildId` ON `SessionEnrollments` (`ChildId`)
 
 CREATE UNIQUE INDEX `IX_SessionEnrollments_SessionId_ChildId` ON `SessionEnrollments` (`SessionId`, `ChildId`);
 
--- Banco de consulta, no mesmo servidor do principal.
--- As views mostram os dados atuais do banco principal, sem guardar uma cópia.
--- TEMPTABLE impede INSERT, UPDATE e DELETE pelas views.
--- Execute como administrador. A conta que cria as views precisa continuar existindo.
+-- Estrutura de apoio às oficinas.
+CREATE TABLE `Units` (
+    `Id` int NOT NULL AUTO_INCREMENT,
+    `Name` varchar(100) NOT NULL,
+    `Address` varchar(150) NOT NULL,
+    `Phone` varchar(20) NOT NULL,
+    CONSTRAINT `PK_Units` PRIMARY KEY (`Id`)
+) CHARACTER SET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `Educators` (
+    `Id` int NOT NULL AUTO_INCREMENT,
+    `Name` varchar(100) NOT NULL,
+    `Phone` varchar(20) NOT NULL,
+    `ActivityId` int NOT NULL,
+    CONSTRAINT `PK_Educators` PRIMARY KEY (`Id`),
+    CONSTRAINT `FK_Educators_Activities` FOREIGN KEY (`ActivityId`) REFERENCES `Activities` (`Id`) ON DELETE RESTRICT
+) CHARACTER SET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `Volunteers` (
+    `Id` int NOT NULL AUTO_INCREMENT,
+    `Name` varchar(100) NOT NULL,
+    `Phone` varchar(20) NOT NULL,
+    `ProgramId` int NOT NULL,
+    CONSTRAINT `PK_Volunteers` PRIMARY KEY (`Id`),
+    CONSTRAINT `FK_Volunteers_Programs` FOREIGN KEY (`ProgramId`) REFERENCES `Programs` (`Id`) ON DELETE RESTRICT
+) CHARACTER SET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `Materials` (
+    `Id` int NOT NULL AUTO_INCREMENT,
+    `Name` varchar(100) NOT NULL,
+    `Quantity` int NOT NULL,
+    `ActivityId` int NOT NULL,
+    CONSTRAINT `PK_Materials` PRIMARY KEY (`Id`),
+    CONSTRAINT `CK_Materials_Quantity` CHECK (`Quantity` >= 0),
+    CONSTRAINT `FK_Materials_Activities` FOREIGN KEY (`ActivityId`) REFERENCES `Activities` (`Id`) ON DELETE RESTRICT
+) CHARACTER SET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+ALTER TABLE `ActivitySessions`
+    ADD COLUMN `UnitId` int NULL,
+    ADD CONSTRAINT `FK_ActivitySessions_Units` FOREIGN KEY (`UnitId`) REFERENCES `Units` (`Id`) ON DELETE RESTRICT;
+
+-- Banco de consulta no mesmo servidor. As views não permitem gravação.
+-- A conta que cria as views deve continuar existindo com acesso ao principal.
 CREATE DATABASE recriar_leitura CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 USE recriar_leitura;
 
@@ -186,7 +225,7 @@ CREATE ALGORITHM=TEMPTABLE SQL SECURITY DEFINER VIEW `FamilyMembers` AS
 SELECT `Id`, `RelationshipTypeId`, `OtherRelationship`, `Name`, `Age`, `ChildId` FROM `recriar_prod`.`FamilyMembers`;
 
 CREATE ALGORITHM=TEMPTABLE SQL SECURITY DEFINER VIEW `ActivitySessions` AS
-SELECT `Id`, `ActivityId`, `StartsAt`, `EndsAt`, `Location` FROM `recriar_prod`.`ActivitySessions`;
+SELECT `Id`, `ActivityId`, `StartsAt`, `EndsAt`, `Location`, `UnitId` FROM `recriar_prod`.`ActivitySessions`;
 
 CREATE ALGORITHM=TEMPTABLE SQL SECURITY DEFINER VIEW `SessionEnrollments` AS
 SELECT `Id`, `ChildId`, `SessionId`, `RegisteredAt` FROM `recriar_prod`.`SessionEnrollments`;
@@ -194,6 +233,17 @@ SELECT `Id`, `ChildId`, `SessionId`, `RegisteredAt` FROM `recriar_prod`.`Session
 CREATE ALGORITHM=TEMPTABLE SQL SECURITY DEFINER VIEW `AttendanceRecords` AS
 SELECT `Id`, `SessionEnrollmentId`, `Attended`, `RecordedAt` FROM `recriar_prod`.`AttendanceRecords`;
 
+CREATE ALGORITHM=TEMPTABLE SQL SECURITY DEFINER VIEW `Units` AS
+SELECT `Id`, `Name`, `Address`, `Phone` FROM `recriar_prod`.`Units`;
+
+CREATE ALGORITHM=TEMPTABLE SQL SECURITY DEFINER VIEW `Educators` AS
+SELECT `Id`, `Name`, `Phone`, `ActivityId` FROM `recriar_prod`.`Educators`;
+
+CREATE ALGORITHM=TEMPTABLE SQL SECURITY DEFINER VIEW `Volunteers` AS
+SELECT `Id`, `Name`, `Phone`, `ProgramId` FROM `recriar_prod`.`Volunteers`;
+
+CREATE ALGORITHM=TEMPTABLE SQL SECURITY DEFINER VIEW `Materials` AS
+SELECT `Id`, `Name`, `Quantity`, `ActivityId` FROM `recriar_prod`.`Materials`;
 
 -- Executar como administrador após criar os dois bancos.
 -- Os papéis não contêm senhas nem criam contas de login.
