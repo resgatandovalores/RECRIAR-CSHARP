@@ -22,7 +22,7 @@ Os testes foram ampliados para conferir leitura em uma nova instância e exporta
 ## Configuração local
 
 1. Instalar os bancos pelo `docs/database/database.sql`, com uma conta administradora, em um MySQL local de testes. Se os bancos já existirem, conferir a instalação antes de executar novamente.
-2. Criar as duas contas locais e atribuir os papéis conforme o README. O principal tem 11 tabelas; a leitura tem 11 views. Outro deve ter Id 9.
+2. Criar as duas contas locais e atribuir os papéis conforme o README. O principal tem 15 tabelas; a leitura tem 15 views. Outro deve ter Id 9.
 3. Na raiz do projeto, executar `dotnet restore`.
 4. Na mesma sessão que iniciará o programa, executar `. ./docs/database/Set-LocalConnection.ps1` e informar porta e credenciais das duas contas.
 5. Executar `dotnet run --project src/Recriar.WinForms` nessa sessão.
@@ -33,7 +33,7 @@ Esta solução usa dois schemas no mesmo servidor. As views mostram os dados atu
 
 ## Resultado das verificações
 
-A solução compilou com zero erros e zero avisos. As 42 verificações automáticas passaram novamente no MySQL 8.0.46 após o ajuste dos formulários.
+A solução compilou com zero erros e zero avisos. As 60 verificações automáticas passaram no MySQL 8.0.46 em 13/11/2026, após ampliar o modelo para 15 entidades. O teste da interface descrito abaixo foi feito em 09/11/2026.
 
 Em 09/11/2026, corrigi a identificação das janelas de cadastro e familiar, ativando ShowInTaskbar nos dois formulários. Antes, a ferramenta tentava preencher os controles pela janela principal bloqueada. Depois do ajuste, consegui selecionar cada janela e preencher os campos. Isso resolveu o impedimento do teste automatizado da interface.
 
@@ -46,3 +46,11 @@ A geração do HTML pelo botão foi aprovada; a abertura visual no navegador con
 ## Entrega e Git
 
 As alterações estão em uma branch local de integração. Não houve push nem abertura de PR nesta etapa. O destino previsto é sandbox. A permissão de envio da conta do usuário precisa estar resolvida antes de publicar.
+
+## Ampliação para 15 entidades em 13/11/2026
+
+Foram acrescentadas Educators, Volunteers, Units e Materials, com chaves estrangeiras, exemplos, consultas e views de leitura. ActivitySessions recebeu UnitId opcional para manter compatibilidade com os encontros antigos.
+
+Os testes cobriram as ligações, quantidade não negativa de materiais, bloqueio de exclusão de unidade em uso, leitura pelas quatro novas views e recusa de gravação pela conta de consulta. Também foi testada a atualização de 11 para 15 com um cadastro já salvo, preservando criança e familiares. O script é atualizar_11_para_15.sql; ele deve ser executado uma vez, após backup.
+
+As telas atuais de cadastro não mudaram nesta ampliação. As quatro entidades novas ainda não têm telas nem serviços no C#.
